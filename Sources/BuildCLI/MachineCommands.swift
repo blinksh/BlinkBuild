@@ -106,6 +106,8 @@ struct MachineCommands: NonStdIOCommand {
 }
 
 func validateContainerName(_ name: String) throws {
+  #if os(Linux)
+  #else
   let namePredicate = NSPredicate(
     format:"SELF MATCHES %@",
     Machines.containerNamePattern
@@ -113,6 +115,7 @@ func validateContainerName(_ name: String) throws {
   guard namePredicate.evaluate(with: name) else {
     throw ValidationError("Invalid container name: `\(name)`")
   }
+  #endif
 }
 
 

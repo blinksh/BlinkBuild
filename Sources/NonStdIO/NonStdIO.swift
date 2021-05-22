@@ -16,6 +16,20 @@ public struct OutputStream: TextOutputStream {
     self.fd = fileno(file)
   }
   
+  #if os(Linux)
+  public func write(_ string: String) {
+    Glibc.write(fd, string, string.utf8.count)
+  }
+  
+  public func flush() {
+    Glibc.fflush(file)
+  }
+  
+  static var stdout: OutputStream { .init(file: Glibc.stdout) }
+  static var stderr: OutputStream { .init(file: Glibc.stderr) }
+  
+  #else
+  
   public func write(_ string: String) {
     Darwin.write(fd, string, string.utf8.count)
   }
@@ -26,6 +40,8 @@ public struct OutputStream: TextOutputStream {
   
   static var stdout: OutputStream { .init(file: Darwin.stdout) }
   static var stderr: OutputStream { .init(file: Darwin.stderr) }
+  
+  #endif
 }
 
 

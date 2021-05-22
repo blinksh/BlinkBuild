@@ -30,7 +30,7 @@ public class FileAuthTokenProvider: FetchAuthTokenProvider {
   
   private func _loadToken() -> [String: Any]? {
     guard
-      let data = try? Data(contentsOf: _tokenFileURL, options: .dataReadingMapped),
+      let data = try? Data(contentsOf: _tokenFileURL, options: []),
       let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
     else {
       return nil
