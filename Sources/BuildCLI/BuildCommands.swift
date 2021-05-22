@@ -114,8 +114,8 @@ public struct BuildCommands: NonStdIOCommand {
     }
     
     func run() throws {
-      let res = try machine().containers.stop(name: name).awaitOutput()!
-      print(res)
+      _ = try machine().containers.stop(name: name).awaitOutput()!
+      print("Container stopped.")
     }
   }
   
