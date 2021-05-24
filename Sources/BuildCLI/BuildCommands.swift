@@ -2,6 +2,7 @@ import ArgumentParser
 import Machines
 import NonStdIO
 import Foundation
+import Promise
 
 public class BuildCLIConfig {
   public static var shared: BuildCLIConfig = .init()
@@ -14,10 +15,10 @@ public class BuildCLIConfig {
     audience: "blink.build"
   ))
   
-  public var tokenProvider: FileAuthTokenProvider
+  public var tokenProvider: AuthTokenProvider
   
-  public init() {
-    tokenProvider = FileAuthTokenProvider(auth0: auth0)
+  public init(storage: TokenStorage = .file()) {
+    tokenProvider = AuthTokenProvider(auth0: auth0, storage: storage)
   }
 }
 

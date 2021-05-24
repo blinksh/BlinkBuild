@@ -19,7 +19,7 @@ fileprivate let auth0 = Auth0(config: .init(
   audience: "blink.build"
 ))
 
-fileprivate let tokenProvider = FileAuthTokenProvider(auth0: auth0)
+fileprivate let tokenProvider = AuthTokenProvider(auth0: auth0, storage: FileTokenStorage())
 
 
 fileprivate func machine() -> Machines.Machine {
@@ -127,7 +127,7 @@ class ContainerCreateCommand: Command {
   func execute() throws {
     let stdout = self.stdout
     
-    try containers()
+    _ = try containers()
       .start(name: container_name, image: image)
       .spinner(stdout: stdout, message: "creating container")
       .onMachineNotStarted {

@@ -8,45 +8,23 @@
 import Foundation
 import Promise
 
-public class FileAuthTokenProvider: FetchAuthTokenProvider {
-  
+
+public class AuthTokenProvider: FetchAuthTokenProvider {
   private let _auth0: Auth0
   private var _tokenJSON: [String: Any]? = nil
-  private let _tokenFileURL: URL
+  private var _tokenStorage: TokenStorage
   
-  public init(auth0: Auth0, tokenFilePath: String = "~/.build.token") {
+  public init(auth0: Auth0, storage: TokenStorage) {
     _auth0 = auth0
-    let path: String = NSString(string: tokenFilePath).expandingTildeInPath
-    _tokenFileURL = URL(fileURLWithPath: path)
+    _tokenStorage = storage
   }
   
   private var tokenJSON: [String: Any]? {
     if let tokenJSON = _tokenJSON {
       return tokenJSON
     }
-    _tokenJSON = _loadToken()
+    _tokenJSON = _tokenStorage.loadToken()
     return _tokenJSON
-  }
-  
-  private func _loadToken() -> [String: Any]? {
-    guard
-      let data = try? Data(contentsOf: _tokenFileURL, options: []),
-      let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-    else {
-      return nil
-    }
-    return json
-  }
-  
-  public func saveToken(json: [String: Any]) {
-    _tokenJSON = json
-    let data = try? JSONSerialization.data(withJSONObject: json, options: [])
-    try? data?.write(to: _tokenFileURL)
-  }
-  
-  public func deleteToken() {
-    _tokenJSON = nil
-    try? FileManager.default.removeItem(at: _tokenFileURL)
   }
   
   public var accessToken: String? {
@@ -73,6 +51,17 @@ public class FileAuthTokenProvider: FetchAuthTokenProvider {
         
         return jsonToken
       }
-      .map(self.saveToken(json:))
+      .map(_tokenStorage.saveToken(json:))
+  }
+  
+  public func saveToken(json: [String: Any]) {
+    _tokenJSON = json
+    
+    _tokenStorage.saveToken(json: json)
+  }
+  
+  public func deleteToken() {
+    _tokenJSON = nil
+    _tokenStorage.deleteToken()
   }
 }
