@@ -46,10 +46,10 @@ struct SSHKeysCommands: NonStdIOCommand {
       name: .shortAndLong,
       help: "Number of ssh key"
     )
-    var index: UInt
+    var number: UInt
     
     func run() throws {
-      _ = try machine().sshKeys.removeAt(index: index).awaitOutput()!
+      _ = try machine().sshKeys.removeAt(index: number).awaitOutput()!
     }
   }
   

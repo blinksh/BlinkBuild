@@ -105,7 +105,7 @@ struct MachineCommands: NonStdIOCommand {
   }
 }
 
-func validateContainerName(_ name: String) throws {
+public func validateContainerName(_ name: String) throws {
   #if os(Linux)
   #else
   let namePredicate = NSPredicate(

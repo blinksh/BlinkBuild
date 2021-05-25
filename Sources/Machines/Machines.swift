@@ -73,7 +73,7 @@ public enum Machines {
           if output.response.statusCode == 503,
              let json = try? JSONSerialization.jsonObject(with: output.data, options: []) as? [String: Any],
              let dropletStatus = json["droplet_status"] as? String,
-             dropletStatus == "destroyed" {
+             dropletStatus == "destroyed"  {
             return .machineIsNotStarted
           }
         default: break

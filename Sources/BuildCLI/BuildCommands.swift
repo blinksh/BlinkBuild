@@ -20,10 +20,14 @@ public class BuildCLIConfig {
   public init(storage: TokenStorage = .file()) {
     tokenProvider = AuthTokenProvider(auth0: auth0, storage: storage)
   }
+  
+  public func machine() -> Machines.Machine {
+    Machines.machine(baseURL: apiURL, auth: .bearer(tokenProvider))
+  }
 }
 
 func machine() -> Machines.Machine {
-  Machines.machine(baseURL: BuildCLIConfig.shared.apiURL, auth: .bearer(BuildCLIConfig.shared.tokenProvider))
+  BuildCLIConfig.shared.machine()
 }
 
 func containers() -> Machines.Containers {
@@ -45,10 +49,16 @@ public struct BuildCommands: NonStdIOCommand {
       Up.self,
       Down.self,
       PS.self,
-      SSH.self,
-      MOSH.self,
+      customSSHCommand ?? SSH.self,
+      customMOSHCommand ?? MOSH.self,
+      customSSHCopyCommand ?? SSHCopyID.self
     ]
   )
+  
+  public static var customSSHCommand: ParsableCommand.Type? = nil
+  public static var customSSHCopyCommand: ParsableCommand.Type? = nil
+  public static var customMOSHCommand: ParsableCommand.Type? = nil
+  
   
   @OptionGroup public var verboseOptions: VerboseOptions
   public var io = NonStdIO.standart
@@ -163,7 +173,7 @@ public struct BuildCommands: NonStdIOCommand {
     
     func run() throws {
       let ip = try machine().ip().awaitOutput()!
-      let args = ["", "-c", "ssh -t \(agent ? "-A" : "") root@\(ip) \(name)"]
+      let args = ["", "-c", "ssh -t \(agent ? "-A" : "") \(verboseOptions.verbose ? "-v" : "") root@\(ip) \(name)"]
       
       printDebug("Executing command \"/bin/sh" + args.joined(separator: " ") + "\"")
       
@@ -200,6 +210,51 @@ public struct BuildCommands: NonStdIOCommand {
       execv("/bin/sh", cargs)
       
       fatalError("exec failed")
+    }
+  }
+  
+  struct SSHCopyID: NonStdIOCommand {
+    static var configuration = CommandConfiguration(
+      commandName: "ssh-copy-id",
+      abstract: "Add public key to build machine authorized_keys file"
+    )
+    
+    @OptionGroup var verboseOptions: VerboseOptions
+    var io = NonStdIO.standart
+    
+    @Option(
+      name: .shortAndLong,
+      help: "Idenity file"
+    )
+    var identity: String?
+  
+
+    func validate() throws {
+      
+    }
+    
+    func run() throws {
+      var keyPath = ""
+      if let identity = identity {
+        keyPath = identity.hasSuffix(".pub") ? keyPath : identity + ".pub"
+      } else {
+        keyPath = "~/.ssh/id_rsa.pub"
+      }
+      
+      let path: String = NSString(string: keyPath).expandingTildeInPath
+      
+      printDebug("Reading key at path: \(path)")
+      
+      guard
+        let data = try? Data(contentsOf: URL(fileURLWithPath: path)),
+        let key = String(data: data, encoding: .utf8)
+      else {
+        throw ValidationError("Can't read pub key at path: \(path)")
+        
+      }
+      
+      let _ = machine().sshKeys.add(sshKey: key).awaitResult()
+      print("Key is added.")
     }
   }
 }
