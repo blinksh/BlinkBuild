@@ -42,7 +42,7 @@ struct ContainersCommands: NonStdIOCommand {
     var image: String
     
     func validate() throws {
-      try validateContainerName(name)
+      try validateContainerNameInBlinkRegistry(name)
     }
     
     func run() throws {

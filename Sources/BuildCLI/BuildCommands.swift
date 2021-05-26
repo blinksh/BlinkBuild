@@ -78,12 +78,12 @@ public struct BuildCommands: NonStdIOCommand {
     var image: String?
     
     @Argument(
-      help: "name of the container"
+      help: "[blink/]name of the container. Use `blink/` prefix to start saved containers"
     )
     var containerName: String
     
     func validate() throws {
-      try validateContainerName(containerName)
+      try validateContainerNameInBlinkRegistry(containerName)
     }
     
     func run() throws {

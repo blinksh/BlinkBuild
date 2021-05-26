@@ -30,13 +30,17 @@ struct MachineCommands: NonStdIOCommand {
     
     @Option(
       name: .shortAndLong,
-      help: "Region where machine is started. (fra1)")
-    var region: String
+      help: "Region where machine is started. (fra1)"
+//      completion: .list(Machines.availableRegions)
+    )
+    var region: String = Machines.availableRegions.first!
     
     @Option(
       name: .shortAndLong,
-      help: "Size of the machine is started. (s-1vcpu-2gb)")
-    var size: String
+      help: "Size of the machine is started. (s-1vcpu-2gb)"
+//      completion: .list(Machines.availableSizes)
+    )
+    var size: String = Machines.availableSizes.first!
     
     func validate() throws {
       let regions = Machines.availableRegions
@@ -116,6 +120,17 @@ public func validateContainerName(_ name: String) throws {
     throw ValidationError("Invalid container name: `\(name)`")
   }
   #endif
+}
+
+
+public func validateContainerNameInBlinkRegistry(_ name: String) throws {
+  let parts = name.split(separator: "/", maxSplits: 1).map(String.init)
+  if parts.first == "blink" && parts.count == 2 {
+    try validateContainerName(parts.last!)
+    return
+  }
+  
+  try validateContainerName(name)
 }
 
 

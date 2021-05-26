@@ -17,7 +17,7 @@ let package = Package(
     .package(url: "https://github.com/yury/Promise", from: "3.0.0"),
     .package(url: "https://github.com/yury/Spinner", from: "1.3.4"),
     .package(url: "https://github.com/jakeheis/SwiftCLI", from: "6.0.0"),
-    .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.3.0"))
+    .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.4.0"))
   ],
   targets: [
     .target(

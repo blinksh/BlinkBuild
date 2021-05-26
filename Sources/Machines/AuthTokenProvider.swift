@@ -56,7 +56,6 @@ public class AuthTokenProvider: FetchAuthTokenProvider {
   
   public func saveToken(json: [String: Any]) {
     _tokenJSON = json
-    
     _tokenStorage.saveToken(json: json)
   }
   
