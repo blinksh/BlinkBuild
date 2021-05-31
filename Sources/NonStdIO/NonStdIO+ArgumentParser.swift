@@ -63,8 +63,6 @@ public extension ParsableCommand where Self: WithNonStdIO {
       return exitCode
     }
     
-    debugPrint(error)
-    
     if !io.quiet,
       let localizedError = error as? LocalizedError,
       let recoverySuggestion = localizedError.recoverySuggestion,

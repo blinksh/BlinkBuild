@@ -8,7 +8,6 @@
 import Foundation
 import Promise
 
-
 public class AuthTokenProvider: FetchAuthTokenProvider {
   private let _auth0: Auth0
   private var _tokenJSON: [String: Any]? = nil
@@ -51,7 +50,7 @@ public class AuthTokenProvider: FetchAuthTokenProvider {
         
         return jsonToken
       }
-      .map(_tokenStorage.saveToken(json:))
+      .map(saveToken(json:))
   }
   
   public func saveToken(json: [String: Any]) {

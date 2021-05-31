@@ -30,6 +30,9 @@ let package = Package(
     .testTarget(
       name: "MachinesTests",
       dependencies: ["Machines"]),
+    .testTarget(
+      name: "BuildCLITests",
+      dependencies: ["BuildCLI"]),
     .target(
       name: "CLI",
       dependencies: ["Machines", "SwiftCLI", "Spinner"]),

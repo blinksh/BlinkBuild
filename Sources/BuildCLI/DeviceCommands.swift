@@ -12,6 +12,7 @@ struct DeviceCommands: NonStdIOCommand {
     subcommands: [
       Authenticate.self,
       Deauthenticate.self,
+      Token.self,
     ]
   )
   
@@ -77,6 +78,19 @@ struct DeviceCommands: NonStdIOCommand {
     func run() throws {
       BuildCLIConfig.shared.tokenProvider.deleteToken()
       print("Token removed")
+    }
+  }
+  
+  struct Token: NonStdIOCommand {
+    static var configuration = CommandConfiguration(
+      abstract: "Display current access token"
+    )
+    
+    @OptionGroup var verboseOptions: VerboseOptions
+    var io = NonStdIO.standart
+    
+    func run() throws {
+      print(BuildCLIConfig.shared.tokenProvider.accessToken ?? "No token")
     }
   }
 }
