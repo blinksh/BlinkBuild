@@ -16,6 +16,7 @@ public class BuildCLIConfig {
   ))
   
   public var tokenProvider: AuthTokenProvider
+  public var sshUser: String = "root"
   
   public init(storage: TokenStorage = .file()) {
     tokenProvider = AuthTokenProvider(auth0: auth0, storage: storage)
@@ -184,7 +185,8 @@ public struct BuildCommands: NonStdIOCommand {
     
     func run() throws {
       let ip = try machine().ip().awaitOutput()!
-      let args = ["", "-c", "ssh -t \(agent ? "-A" : "") \(verboseOptions.verbose ? "-v" : "") root@\(ip) \(name)"]
+      let user = BuildCLIConfig.shared.sshUser
+      let args = ["", "-c", "ssh -t \(agent ? "-A" : "") \(verboseOptions.verbose ? "-v" : "") \(user)@\(ip) \(name)"]
       
       printDebug("Executing command \"/bin/sh" + args.joined(separator: " ") + "\"")
       
@@ -215,7 +217,8 @@ public struct BuildCommands: NonStdIOCommand {
     
     func run() throws {
       let ip = try machine().ip().awaitOutput()!
-      let args = ["", "-c", "mosh root@\(ip) \(name)"]
+      let user = BuildCLIConfig.shared.sshUser
+      let args = ["", "-c", "mosh \(user)@\(ip) \(name)"]
       let cargs = args.map { strdup($0) } + [nil]
       
       execv("/bin/sh", cargs)
