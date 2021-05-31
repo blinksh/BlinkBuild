@@ -9,14 +9,12 @@ let package = Package(
     .library(name: "Machines", targets: ["Machines"]),
     .library(name: "NonStdIO", targets: ["NonStdIO"]),
     .library(name: "BuildCLI", targets: ["BuildCLI"]),
-    .executable(name: "blink-machine", targets: ["CLI"]),
     .executable(name: "build", targets: ["Build"])
   ],
   dependencies: [
 //    .package(path: "../Promise"),
     .package(url: "https://github.com/yury/Promise", from: "3.0.0"),
     .package(url: "https://github.com/yury/Spinner", from: "1.3.4"),
-    .package(url: "https://github.com/jakeheis/SwiftCLI", from: "6.0.0"),
     .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.4.0"))
   ],
   targets: [
@@ -33,9 +31,6 @@ let package = Package(
     .testTarget(
       name: "BuildCLITests",
       dependencies: ["BuildCLI"]),
-    .target(
-      name: "CLI",
-      dependencies: ["Machines", "SwiftCLI", "Spinner"]),
     .target(
       name: "BuildCLI",
       dependencies: [
