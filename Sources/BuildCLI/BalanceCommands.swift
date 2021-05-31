@@ -8,7 +8,6 @@
 import ArgumentParser
 import NonStdIO
 
-
 struct BalanceCommands: NonStdIOCommand {
   
   static var configuration = CommandConfiguration(

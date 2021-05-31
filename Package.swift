@@ -41,6 +41,7 @@ let package = Package(
       dependencies: [
         "Machines",
         "NonStdIO",
+        "Spinner",
         .product(name: "ArgumentParser", package: "swift-argument-parser")]
     ),
     .target(

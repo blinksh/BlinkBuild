@@ -89,7 +89,7 @@ public struct BuildCommands: NonStdIOCommand {
     func run() throws {
       _ = try machine().containers
         .start(name: containerName, image: image ?? containerName)
-  //      .spinner(stdout: stdout, message: "creating container")
+        .spinner(io: io, message: "creating container")
         .onMachineNotStarted {
   //        stdout <<< "Machine is not started."
   //        let doStart = Input.readBool(prompt: "Start machine?", defaultValue: true, secure: false)
@@ -102,7 +102,7 @@ public struct BuildCommands: NonStdIOCommand {
               size: Machines.defaultSize
             ).map { _ in return true }
             .delay(.seconds(3)) // wait a little bit to start
-  //          .spinner(stdout: stdout, message: "Starting machine")
+            .spinner(io: io, message: "Starting machine")
         }.awaitOutput()!
     }
   }
@@ -125,7 +125,15 @@ public struct BuildCommands: NonStdIOCommand {
     }
     
     func run() throws {
-      _ = try machine().containers.stop(name: name).awaitOutput()!
+      _ = try machine()
+        .containers
+        .stop(name: name)
+        .spinner(
+          io: io,
+          message: "Stopping container `\(name)`",
+          failureMessage: "Failed to stop container"
+        )
+        .awaitOutput()!
       print("Container stopped.")
     }
   }
@@ -140,7 +148,10 @@ public struct BuildCommands: NonStdIOCommand {
     var io: NonStdIO = .standart
     
     func run() throws {
-      let res = try containers().list().awaitOutput()!["containers"] as? [String]
+      let res = try containers()
+        .list()
+        .spinner(io: io, message: "Retrieving running containers", failureMessage: "Failed to get list of running containers")
+        .awaitOutput()!["containers"] as? [String]
       for line in res ?? [] {
         print(line)
       }

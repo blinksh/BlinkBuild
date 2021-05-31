@@ -132,6 +132,3 @@ public func validateContainerNameInBlinkRegistry(_ name: String) throws {
   
   try validateContainerName(name)
 }
-
-
-

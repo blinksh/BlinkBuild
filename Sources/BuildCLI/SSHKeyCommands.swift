@@ -28,8 +28,11 @@ struct SSHKeysCommands: NonStdIOCommand {
     var sshKey: String
     
     func run() throws {
-      _ = try machine().sshKeys.add(sshKey: sshKey).awaitOutput()!
-      print("Key is added")
+      _ = try machine()
+        .sshKeys
+        .add(sshKey: sshKey)
+        .spinner(io: io, message: "Adding key", successMessage: "Key is added.", failureMessage: "Failed to add key")
+        .awaitOutput()!
     }
   }
   
@@ -49,7 +52,16 @@ struct SSHKeysCommands: NonStdIOCommand {
     var number: UInt
     
     func run() throws {
-      _ = try machine().sshKeys.removeAt(index: number).awaitOutput()!
+      _ = try machine()
+        .sshKeys
+        .removeAt(index: number)
+        .spinner(
+          io: io,
+          message: "Removing key",
+          successMessage: "Key is removed",
+          failureMessage: "Failed to remove key"
+        )
+        .awaitOutput()!
     }
   }
   
@@ -63,7 +75,14 @@ struct SSHKeysCommands: NonStdIOCommand {
     var io = NonStdIO.standart
     
     func run() throws {
-      let res = try machine().sshKeys.list().awaitOutput()!
+      let res = try machine()
+        .sshKeys
+        .list()
+        .spinner(
+          io: io,
+          message: "Retrieving keys",
+          failureMessage: "Failed to retrieve keys")
+        .awaitOutput()!
       var idx = 1
       res.enumerateLines { line, _ in
         print("\(idx): \(line)")

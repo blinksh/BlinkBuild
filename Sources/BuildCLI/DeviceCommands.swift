@@ -58,7 +58,7 @@ struct DeviceCommands: NonStdIOCommand {
           default: return false
           }
         })
-//        .spinner(stdout: stdout, message: "Waiting for authorization", quiet: self.quiet)
+        .spinner(io: io, message: "Waiting for authorization")
         .map { $0.json }
         .map(BuildCLIConfig.shared.tokenProvider.saveToken(json:))
         .awaitOutput()
