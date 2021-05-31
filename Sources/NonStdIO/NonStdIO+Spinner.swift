@@ -27,6 +27,10 @@ public struct NonStdIOSpinnerUI: SpinnerUI {
   public func unhideCursor() {
     _io.out.write("\u{001B}[?25h")
   }
+  
+  public func printString(_ str: String) {
+    _io.print(str, terminator: "")
+  }
 }
 
 #endif

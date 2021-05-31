@@ -26,6 +26,7 @@ extension Promise {
             s?.failure(failureMessage)
           }
           s = nil
+          
           fn(result)
         }
         dispose: { s?.stop() }
