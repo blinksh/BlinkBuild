@@ -17,7 +17,6 @@ struct SSHKeysCommands: NonStdIOCommand {
   
   struct Add: NonStdIOCommand {
     static var configuration = CommandConfiguration(
-      commandName: "add",
       abstract: "Add ssh key to dev machine authorization keys"
     )
     
@@ -38,7 +37,6 @@ struct SSHKeysCommands: NonStdIOCommand {
   
   struct Remove: NonStdIOCommand {
     static var configuration = CommandConfiguration(
-      commandName: "remove",
       abstract: "Remove key by line number from authorization keys"
     )
     
@@ -46,7 +44,7 @@ struct SSHKeysCommands: NonStdIOCommand {
     var io = NonStdIO.standart
     
     @Option(
-      name: .shortAndLong,
+      name: [.long, .customShort("n", allowingJoined: true)],
       help: "Number of ssh key"
     )
     var number: UInt
@@ -67,7 +65,6 @@ struct SSHKeysCommands: NonStdIOCommand {
   
   struct List: NonStdIOCommand {
     static var configuration = CommandConfiguration(
-      commandName: "list",
       abstract: "List keys in authorization keys file"
     )
     
