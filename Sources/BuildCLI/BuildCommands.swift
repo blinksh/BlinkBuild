@@ -16,7 +16,7 @@ public class BuildCLIConfig {
   ))
   
   public var tokenProvider: AuthTokenProvider
-  public var sshUser: String = "root"
+  public var sshUser: String = "blink"
   
   public init(storage: TokenStorage = .file()) {
     tokenProvider = AuthTokenProvider(auth0: auth0, storage: storage)
@@ -177,16 +177,35 @@ public struct BuildCommands: NonStdIOCommand {
     @Argument(
       help: "name of the container"
     )
-    var name: String
+    var containerName: String
+    
+    @Argument(
+      parsing: .unconditionalRemaining,
+      help: .init(
+        "If a <command> is specified, it is executed on the container instead of a login shell",
+        valueName: "command"
+      )
+    )
+    fileprivate var cmd: [String] = []
+    
+    var command: [String] {
+      get {
+        if cmd.first == "--" {
+          return Array(cmd.dropFirst())
+        } else {
+          return cmd
+        }
+      }
+    }
 
     func validate() throws {
-      try validateContainerName(name)
+      try validateContainerName(containerName)
     }
     
     func run() throws {
       let ip = try machine().ip().awaitOutput()!
       let user = BuildCLIConfig.shared.sshUser
-      let args = ["", "-c", "ssh -t \(agent ? "-A" : "") \(verboseOptions.verbose ? "-v" : "") \(user)@\(ip) \(name)"]
+      let args = ["", "-c", "ssh -t \(agent ? "-A" : "") \(verboseOptions.verbose ? "-v" : "") \(user)@\(ip) \(containerName)"] + command
       
       printDebug("Executing command \"/bin/sh" + args.joined(separator: " ") + "\"")
       

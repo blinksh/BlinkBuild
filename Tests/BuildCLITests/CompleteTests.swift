@@ -2,28 +2,68 @@ import XCTest
 @testable import BuildCLI
 import ArgumentParser
 
-enum ParsingState {
-  case start, command, args, subcommands
-}
-
 class CommandCompletionService {
-  struct Argument {
+  enum ParsingState {
+    case start, command, args, subcommands
+  }
+
+  struct Argument: CustomStringConvertible {
     let name: String?
     let short: String?
     let long: String?
     let help: String?
-    let flag: Bool
-    let option: Bool
+    let flag: Bool // no value
+    let option: Bool // value
+    let argument: Bool // standalone argument
     let subcommand: Bool
     
-    static func subcommand(name: String, help: String) -> Argument {
-      .init(name: name, short: nil, long: nil, help: help, flag: false, option: false, subcommand: true)
+    var description: String {
+      var result: String = ""
+      
+      if short != nil || long != nil {
+        let names = [short, long].filter { $0 != nil }.map { $0! }.joined(separator: ", ")
+        result += "(\(names))"
+      }
+      
+      if let desc = help {
+        result += "[\(desc)]"
+      }
+      
+      if let name = name {
+        if subcommand {
+          result = ":\(name):" + result
+        } else {
+          result += ":\(name):"
+        }
+      }
+      
+      return result
     }
+    
+    static func subcommand(name: String, help: String) -> Argument {
+      .init(
+        name: name,
+        short: nil,
+        long: nil,
+        help: help,
+        flag: false,
+        option: false,
+        argument: false,
+        subcommand: true
+      )
+    }
+  
   }
   
-  struct Record {
+  struct Record: CustomStringConvertible {
     let command: String
     let args: [Argument]
+    
+    var description: String {
+      var result = "`\(command)`:\(args)"
+      
+      return result
+    }
   }
   
   var index: [String: Record] = [:]
@@ -96,10 +136,10 @@ class CommandCompletionService {
           var name: String? = nil
           var flag: Bool = false
           var option: Bool = false
+          var argument: Bool = false
           var short: String? = nil
           var long: String? = nil
           
-//          print("arg", cleanLine)
           
           if let range = cleanLine.range(
               of: #"\[[^\[]+\]"#,
@@ -138,6 +178,12 @@ class CommandCompletionService {
             option = false
           }
           
+          if let name = name, cleanLine == ":" + name + ":" {
+            argument = true
+            flag = false
+            option = false
+          }
+          
           let arg = Argument(
             name: name,
             short: short,
@@ -145,6 +191,7 @@ class CommandCompletionService {
             help: description,
             flag: flag,
             option: option,
+            argument: argument,
             subcommand: false
           )
           
@@ -159,7 +206,10 @@ class CommandCompletionService {
 
 final class CompleteTests: XCTestCase {
     func testExample() {
-      debugPrint(CommandCompletionService.build(for: BuildCommands.self).index)
+      let service = CommandCompletionService.build(for: BuildCommands.self)
+      let foo = service.index["build machine stop"]!
+      debugPrint(foo)
+//      print(service.index)
     }
 
     static var allTests = [
