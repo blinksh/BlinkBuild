@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 public class TokenStorage {
   public func loadToken() -> [String: Any]? {
     nil
@@ -22,10 +21,13 @@ public class TokenStorage {
   public static func file(atPath: String = "~/.build.token") -> TokenStorage {
     FileTokenStorage(tokenFilePath: atPath)
   }
-  
+
+  #if os(Linux)
+  #else
   public static func userDefaults(_ ud: UserDefaults = .standard, tokenKey: String = "machinesToken") -> TokenStorage {
     UserDefaultsTokenStorage(ud: ud, tokenKey: tokenKey)
   }
+  #endif
 }
 
 public class FileTokenStorage: TokenStorage {
@@ -56,6 +58,9 @@ public class FileTokenStorage: TokenStorage {
   }
 }
 
+#if os(Linux)
+#else
+
 public class UserDefaultsTokenStorage: TokenStorage {
   private let _ud: UserDefaults
   private let _tokenKey: String
@@ -77,3 +82,5 @@ public class UserDefaultsTokenStorage: TokenStorage {
     _ud.removeObject(forKey: _tokenKey)
   }
 }
+
+#endif

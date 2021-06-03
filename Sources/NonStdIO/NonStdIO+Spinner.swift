@@ -6,7 +6,8 @@
 //
 
 
-#if canImport(Spinner)
+//#if canImport(Spinner)
+
 import Spinner
 
 public struct NonStdIOSpinnerUI: SpinnerUI {
@@ -33,4 +34,4 @@ public struct NonStdIOSpinnerUI: SpinnerUI {
   }
 }
 
-#endif
+//#endif

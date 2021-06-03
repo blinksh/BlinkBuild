@@ -7,8 +7,8 @@
 
 import Foundation
 import Promise
-import Spinner
 import NonStdIO
+import Spinner
 
 extension Promise {
   func spinner(io: NonStdIO, message: String, successMessage: String? = nil, failureMessage: String? = nil) -> Promise {
