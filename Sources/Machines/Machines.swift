@@ -110,13 +110,7 @@ public enum Machines {
     }
     
     public func ip() -> Promise<String, Error> {
-      client.run(command: "ip").stringFor(key: "ip").flatMap { ip in
-        if ip.isEmpty {
-          return .fail(.machineIsNotStarted)
-        } else {
-          return .just(ip)
-        }
-      }
+      client.run(command: "ip").stringFor(key: "ip")
     }
     
     public var containers: Containers {
