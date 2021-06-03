@@ -18,12 +18,14 @@ public enum Machines {
     case fetchError(Fetch.Error)
     case machineIsNotStarted
     case deviceNotAuthenticated
+    case cannonProcessResponse
     
     public var errorDescription: String? {
       switch self {
       case .fetchError(let error): return error.localizedDescription
-      case .machineIsNotStarted: return "Machine is not started"
+      case .machineIsNotStarted: return "Machine is not started."
       case .deviceNotAuthenticated: return "This device is not authenticated."
+      case .cannonProcessResponse: return "Cannot process response."
       }
     }
     
@@ -33,6 +35,7 @@ public enum Machines {
       case .fetchError(let error): return error.recoverySuggestion
       case .machineIsNotStarted: return "Hint: Start machine first with `build machine start` command."
       case .deviceNotAuthenticated: return "Hint: Use `build device authenticate` command first."
+      case .cannonProcessResponse: return ""
       }
     }
 
@@ -59,7 +62,6 @@ public enum Machines {
         return .fail(.deviceNotAuthenticated)
       }
       
-      
       return RequestResult(
         url: baseURL,
         path: command,
@@ -70,10 +72,10 @@ public enum Machines {
       .mapError { err -> Machines.Error in
         switch err {
         case Fetch.Error.unexpectedResponseStatus(let output):
-          if output.response.statusCode == 503,
+          if output.response.statusCode == 404,
              let json = try? JSONSerialization.jsonObject(with: output.data, options: []) as? [String: Any],
-             let dropletStatus = json["droplet_status"] as? String,
-             dropletStatus == "destroyed"  {
+             let message = json["message"] as? String,
+             message == "No machine assigned to user. Please run machine create first."  {
             return .machineIsNotStarted
           }
         default: break

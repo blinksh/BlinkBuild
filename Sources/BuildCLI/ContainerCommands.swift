@@ -102,10 +102,8 @@ struct ContainersCommands: NonStdIOCommand {
     var io = NonStdIO.standart
     
     func run() throws {
-      let res = try containers().list().awaitOutput()!["containers"] as? [String]
-      for line in res ?? [] {
-        print(line)
-      }
+      let res = try containers().list().awaitOutput()!["containers"]!
+      print(try JSONSerialization.prettyJSON(json: res as Any))
     }
   }
   

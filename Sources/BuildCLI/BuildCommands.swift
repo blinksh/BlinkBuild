@@ -90,7 +90,7 @@ public struct BuildCommands: NonStdIOCommand {
     func run() throws {
       _ = try machine().containers
         .start(name: containerName, image: image ?? containerName)
-        .spinner(io: io, message: "creating container")
+        .spinner(io: io, message: "Creating container")
         .onMachineNotStarted {
   //        stdout <<< "Machine is not started."
   //        let doStart = Input.readBool(prompt: "Start machine?", defaultValue: true, secure: false)
@@ -151,11 +151,14 @@ public struct BuildCommands: NonStdIOCommand {
     func run() throws {
       let res = try containers()
         .list()
-        .spinner(io: io, message: "Retrieving running containers", failureMessage: "Failed to get list of running containers")
-        .awaitOutput()!["containers"] as? [String]
-      for line in res ?? [] {
-        print(line)
-      }
+        .spinner(
+          io: io,
+          message: "Retrieving running containers",
+          failureMessage: "Failed to get list of running containers"
+        )
+        .awaitOutput()!["containers"]
+      
+      print(try JSONSerialization.prettyJSON(json: res))
     }
   }
 
@@ -205,7 +208,7 @@ public struct BuildCommands: NonStdIOCommand {
     func run() throws {
       let ip = try machine().ip().awaitOutput()!
       let user = BuildCLIConfig.shared.sshUser
-      let args = ["", "-c", "ssh -t \(agent ? "-A" : "") \(verboseOptions.verbose ? "-v" : "") \(user)@\(ip) \(containerName)"] + command
+      let args = ["", "-c", "ssh -t \(agent ? "-A" : "") \(verboseOptions.verbose ? "-v" : "") \(user)@\(ip) \(containerName) \(command.joined(separator: " "))"]
       
       printDebug("Executing command \"/bin/sh" + args.joined(separator: " ") + "\"")
       
@@ -261,11 +264,6 @@ public struct BuildCommands: NonStdIOCommand {
     )
     var identity: String?
   
-
-    func validate() throws {
-      
-    }
-    
     func run() throws {
       var keyPath = ""
       if let identity = identity {
