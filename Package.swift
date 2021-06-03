@@ -20,7 +20,7 @@ let package = Package(
   targets: [
     .target(
       name: "NonStdIO",
-      dependencies: [.product(name: "ArgumentParser", package: "swift-argument-parser")]
+      dependencies: [.product(name: "ArgumentParser", package: "swift-argument-parser"), "Spinner"]
     ),
     .target(
       name: "Machines",
