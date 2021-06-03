@@ -102,11 +102,11 @@ public enum Machines {
     }
     
     public func start(region: String, size: String) -> JSONPromise {
-      client.run(command: "create", args: ["region": region, "size": size], timeoutInterval: 240)
+      client.run(command: "create", args: ["region": region, "size": size], timeoutInterval: 60 * 4)
     }
     
     public func stop() -> JSONPromise {
-      client.run(command: "stop")
+      client.run(command: "stop", timeoutInterval: 60 * 4)
     }
     
     public func ip() -> Promise<String, Error> {
@@ -148,7 +148,7 @@ public enum Machines {
     fileprivate let client: Client
     
     public func start(name: String, image: String) -> JSONPromise {
-      client.run(command: "create", args: ["name": name, "image": image])
+      client.run(command: "create", args: ["name": name, "image": image], timeoutInterval: 60 * 2)
     }
     
     public func reboot(name: String) -> JSONPromise {
@@ -164,7 +164,7 @@ public enum Machines {
     }
     
     public func save(name: String) -> JSONPromise {
-      client.run(command: "save", args: ["name": name])
+      client.run(command: "save", args: ["name": name], timeoutInterval: 60 * 4)
     }
     
     public func list() -> JSONPromise {

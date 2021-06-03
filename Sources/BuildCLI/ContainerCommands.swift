@@ -88,7 +88,15 @@ struct ContainersCommands: NonStdIOCommand {
     }
     
     func run() throws {
-      _ = try containers().save(name: name).awaitOutput()!
+      _ = try containers()
+        .save(name: name)
+        .spinner(
+          io: io,
+          message: "Saving container",
+          successMessage: "Container is saved",
+          failureMessage: "Failed to save container"
+        )
+        .awaitOutput()!
       print("Container", name, "is saved")
     }
   }

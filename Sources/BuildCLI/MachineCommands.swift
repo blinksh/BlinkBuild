@@ -61,8 +61,15 @@ struct MachineCommands: NonStdIOCommand {
     }
     
     func run() throws {
-      _ = try machine().start(region: region, size: size).awaitOutput()!
-      print("Machine is started.")
+      _ = try machine()
+        .start(region: region, size: size)
+        .spinner(
+          io: io,
+          message: "Starting machine",
+          successMessage: "Machine is started",
+          failureMessage: "Failed to start machine"
+        )
+        .awaitOutput()!
     }
   }
   
@@ -75,7 +82,15 @@ struct MachineCommands: NonStdIOCommand {
     var io = NonStdIO.standart
     
     func run() throws {
-      _ = try machine().stop().awaitOutput()!
+      _ = try machine()
+        .stop()
+        .spinner(
+          io: io,
+          message: "Stopping machine",
+          successMessage: "Machine is stopped",
+          failureMessage: "Failed to stop machine"
+        )
+        .awaitOutput()!
       print("Machine is stopped.")
     }
   }
