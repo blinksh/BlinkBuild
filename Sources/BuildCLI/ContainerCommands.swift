@@ -110,8 +110,8 @@ struct ContainersCommands: NonStdIOCommand {
     var io = NonStdIO.standart
     
     func run() throws {
-      let res = try containers().list().awaitOutput()!["containers"]!
-      print(try JSONSerialization.prettyJSON(json: res as Any))
+      let res = try containers().list().awaitOutput()!
+      print(try JSONSerialization.prettyJSON(json: res["containers"]))
     }
   }
   

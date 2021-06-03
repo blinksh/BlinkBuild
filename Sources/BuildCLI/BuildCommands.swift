@@ -151,14 +151,9 @@ public struct BuildCommands: NonStdIOCommand {
     func run() throws {
       let res = try containers()
         .list()
-        .spinner(
-          io: io,
-          message: "Retrieving running containers",
-          failureMessage: "Failed to get list of running containers"
-        )
-        .awaitOutput()!["containers"]
+        .awaitOutput()!
       
-      print(try JSONSerialization.prettyJSON(json: res))
+      print(try JSONSerialization.prettyJSON(json: res["containers"]))
     }
   }
 
