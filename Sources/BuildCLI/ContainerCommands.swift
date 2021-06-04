@@ -46,8 +46,11 @@ struct ContainersCommands: NonStdIOCommand {
     }
     
     func run() throws {
-      _ = try machine().containers.start(name: name, image: image).awaitOutput()
-      print("Started")
+      _ = try machine()
+        .containers
+        .start(name: name, image: image)
+        .spinner(io: io, message: "Starting container", successMessage: "Container is started.")
+        .awaitOutput()
     }
   }
   

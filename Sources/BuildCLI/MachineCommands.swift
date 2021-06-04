@@ -69,7 +69,7 @@ struct MachineCommands: NonStdIOCommand {
           successMessage: "Machine is started",
           failureMessage: "Failed to start machine"
         )
-        .awaitOutput()!
+        .awaitOutput()
     }
   }
   
@@ -87,11 +87,10 @@ struct MachineCommands: NonStdIOCommand {
         .spinner(
           io: io,
           message: "Stopping machine",
-          successMessage: "Machine is stopped",
-          failureMessage: "Failed to stop machine"
+          successMessage: "Machine is stopped.",
+          failureMessage: "Failed to stop machine."
         )
-        .awaitOutput()!
-      print("Machine is stopped.")
+        .awaitOutput()
     }
   }
   
@@ -104,8 +103,7 @@ struct MachineCommands: NonStdIOCommand {
     var io = NonStdIO.standart
     
     func run() throws {
-      let res = try machine().status().awaitOutput()!
-      print(res)
+      print(try machine().status().awaitOutput()!)
     }
   }
   
@@ -118,8 +116,7 @@ struct MachineCommands: NonStdIOCommand {
     var io = NonStdIO.standart
     
     func run() throws {
-      let res = try machine().ip().awaitOutput()!
-      print(res)
+      print(try machine().ip().awaitOutput()!)
     }
   }
 }
@@ -132,16 +129,6 @@ public func validateContainerName(_ name: String) throws {
   else {
     throw ValidationError("Invalid container name: `\(name)`")
   }
-//  #if os(Linux)
-//  #else
-//  let namePredicate = NSPredicate(
-//    format:"SELF MATCHES %@",
-//    Machines.containerNamePattern
-//  )
-//  guard namePredicate.evaluate(with: name) else {
-//
-//  }
-//  #endif
 }
 
 

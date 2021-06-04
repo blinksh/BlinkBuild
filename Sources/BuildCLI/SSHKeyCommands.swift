@@ -30,8 +30,13 @@ struct SSHKeysCommands: NonStdIOCommand {
       _ = try machine()
         .sshKeys
         .add(sshKey: sshKey)
-        .spinner(io: io, message: "Adding key", successMessage: "Key is added.", failureMessage: "Failed to add key")
-        .awaitOutput()!
+        .spinner(
+          io: io,
+          message: "Adding key",
+          successMessage: "Key is added.",
+          failureMessage: "Failed to add key"
+        )
+        .awaitOutput()
     }
   }
   
@@ -59,7 +64,7 @@ struct SSHKeysCommands: NonStdIOCommand {
           successMessage: "Key is removed",
           failureMessage: "Failed to remove key"
         )
-        .awaitOutput()!
+        .awaitOutput()
     }
   }
   
@@ -78,11 +83,16 @@ struct SSHKeysCommands: NonStdIOCommand {
         .spinner(
           io: io,
           message: "Retrieving keys",
-          failureMessage: "Failed to retrieve keys")
+          failureMessage: "Failed to retrieve keys"
+        )
         .awaitOutput()!
       var idx = 1
       res.enumerateLines { line, _ in
-        print("\(idx): \(line)")
+        let cleanLine = line.replacingOccurrences(
+          of: "command=\"python3 /blink/scripts/command.py\" ",
+          with: ""
+        )
+        print("\(idx): \(cleanLine)")
         idx += 1
       }
     }

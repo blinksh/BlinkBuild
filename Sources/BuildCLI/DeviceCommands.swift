@@ -44,11 +44,11 @@ struct DeviceCommands: NonStdIOCommand {
       print("Please authorize device here:")
       print(verificationURIComplete)
       
-      var tries = 5;
+      var tries = 6;
       
       try Promise
         .just(deviceCode)
-        .delay(.seconds(5))
+        .delay(.seconds(6))
         .flatMap(BuildCLIConfig.shared.auth0.activate)
         .repeatIfNeeded({ result in
           switch result.fetchError {

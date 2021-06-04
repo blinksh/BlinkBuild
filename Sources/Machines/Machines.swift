@@ -101,7 +101,7 @@ public enum Machines {
       client.run(command: "status").stringFor(key: "status")
     }
     
-    public func start(region: String, size: String) -> JSONPromise {
+    public func start(region: String = defaultRegion, size: String = defaultSize) -> JSONPromise {
       client.run(command: "create", args: ["region": region, "size": size], timeoutInterval: 60 * 4)
     }
     
@@ -186,21 +186,6 @@ extension Promise where O == Machines.JSON, E == Machines.Error {
       return .just(value)
     }
   }
-  
-  /*
-   func refreshAuthAndRetry(auth: Fetch.Auth) -> Promise<O, E> {
-     flatMap { output in
-       guard
-         [401, 403].contains(output.response.statusCode),
-         case .bearer(let tokenProvider) = auth
-       else {
-         return .just(output)
-       }
-       
-       return tokenProvider.refresh().flatMap { self }
-     }
-   }
-   */
   
   public func onMachineNotStarted(fn: @escaping () -> Promise<Bool, Machines.Error> ) -> Promise<O, E> {
     self.flatMapResult { res -> Promise<O, E> in

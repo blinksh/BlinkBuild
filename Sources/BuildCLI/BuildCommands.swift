@@ -4,28 +4,6 @@ import NonStdIO
 import Foundation
 import Promise
 
-public class BuildCLIConfig {
-  public static var shared: BuildCLIConfig = .init()
-  
-  public var apiURL = "https://api-staging.blink.build";
-  public var auth0: Auth0 = Auth0(config: .init(
-    clientId: "x7RQ8NR862VscbotFSfu2VO7PEj55ExK",
-    domain: "dev-i8bp-l6b.us.auth0.com",
-    scope: "offline_access+openid+profile+read:build+write:build",
-    audience: "blink.build"
-  ))
-  
-  public var tokenProvider: AuthTokenProvider
-  public var sshUser: String = "blink"
-  
-  public init(storage: TokenStorage = .file()) {
-    tokenProvider = AuthTokenProvider(auth0: auth0, storage: storage)
-  }
-  
-  public func machine() -> Machines.Machine {
-    Machines.machine(baseURL: apiURL, auth: .bearer(tokenProvider))
-  }
-}
 
 func machine() -> Machines.Machine {
   BuildCLIConfig.shared.machine()
@@ -90,18 +68,11 @@ public struct BuildCommands: NonStdIOCommand {
     func run() throws {
       _ = try machine().containers
         .start(name: containerName, image: image ?? containerName)
-        .spinner(io: io, message: "Creating container")
+        .spinner(io: io, message: "Creating container", successMessage: "Container is created.")
         .onMachineNotStarted {
-  //        stdout <<< "Machine is not started."
-  //        let doStart = Input.readBool(prompt: "Start machine?", defaultValue: true, secure: false)
-  //        if !doStart {
-  //          return .just(false)
-  //        }
-          return machine()
-            .start(
-              region: Machines.defaultRegion,
-              size: Machines.defaultSize
-            ).map { _ in return true }
+          machine()
+            .start()
+            .map { _ in return true }
             .delay(.seconds(3)) // wait a little bit to start
             .spinner(io: io, message: "Starting machine")
         }.awaitOutput()!
