@@ -52,6 +52,12 @@ public struct BuildCommands: NonStdIOCommand {
     
     @Option(
       name: .shortAndLong,
+      help: "publish a container's port(s) to the host."
+    )
+    var publish: [String] = []
+    
+    @Option(
+      name: .shortAndLong,
       help: "image of container"
     )
     var image: String?
@@ -63,11 +69,12 @@ public struct BuildCommands: NonStdIOCommand {
     
     func validate() throws {
       try validateContainerNameInBlinkRegistry(containerName)
+      try validatePublishPorts(ports: publish)
     }
     
     func run() throws {
       _ = try machine().containers
-        .start(name: containerName, image: image ?? containerName)
+        .start(name: containerName, image: image ?? containerName, ports: publish)
         .spinner(io: io, message: "Creating container", successMessage: "Container is created.")
         .onMachineNotStarted {
           machine()
@@ -87,26 +94,57 @@ public struct BuildCommands: NonStdIOCommand {
     @OptionGroup var verboseOptions: VerboseOptions
     var io: NonStdIO = .standart
     
-    @Argument(
-      help: "name of the container"
+    @Flag(
+      name: .shortAndLong,
+      help: "Skip machine stop if no containers left"
     )
-    var name: String
+    var skipMachineAutoStop: Bool = false
+    
+    @Argument(
+      help: "Name of the container"
+    )
+    var containerName: String
     
     func validate() throws {
-      try validateContainerName(name)
+      try validateContainerName(containerName)
     }
     
     func run() throws {
       _ = try machine()
         .containers
-        .stop(name: name)
+        .stop(name: containerName)
         .spinner(
           io: io,
-          message: "Stopping container `\(name)`",
+          message: "Stopping container `\(containerName)`",
+          successMessage: "Container is stopped",
           failureMessage: "Failed to stop container"
         )
+        .flatMap({ _ -> Promise<Void, Machines.Error> in
+          if skipMachineAutoStop {
+            return .just(())
+          }
+          return machine()
+            .containers
+            .list()
+            .flatMap { json in
+            guard
+              let containers = json["containers"] as? [[String: Any]],
+              containers.isEmpty
+            else {
+              return .just(())
+            }
+ 
+            return machine()
+              .stop()
+              .spinner(
+                io: io,
+                message: "No running containers left. Stopping machine...",
+                successMessage: "Machine is stopped",
+                failureMessage: "Failed to stop machine"
+              ).map { _ in }
+          }
+        })
         .awaitOutput()!
-      print("Container stopped.")
     }
   }
   

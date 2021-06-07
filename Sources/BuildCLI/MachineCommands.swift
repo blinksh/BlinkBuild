@@ -131,6 +131,22 @@ public func validateContainerName(_ name: String) throws {
   }
 }
 
+public func validatePublishPorts(ports: [String]) throws {
+  for port in ports {
+    try validatePublishPortMapping(portMapping: port)
+  }
+}
+
+public func validatePublishPortMapping(portMapping: String) throws {
+  guard let _ = portMapping.range(
+          of: Machines.containerPortMappingPattern,
+          options: .regularExpression,
+          range: nil, locale: nil)
+  else {
+    throw ValidationError("Invalid port mapping: `\(portMapping)`")
+  }
+}
+
 
 public func validateContainerNameInBlinkRegistry(_ name: String) throws {
   let parts = name.split(separator: "/", maxSplits: 1).map(String.init)

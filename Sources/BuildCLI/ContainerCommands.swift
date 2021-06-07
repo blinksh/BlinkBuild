@@ -31,6 +31,12 @@ struct ContainersCommands: NonStdIOCommand {
     
     @Option(
       name: .shortAndLong,
+      help: "publish a container's port(s) to the host."
+    )
+    var publish: [String] = []
+    
+    @Option(
+      name: .shortAndLong,
       help: "name of the container"
     )
     var name: String
@@ -43,12 +49,13 @@ struct ContainersCommands: NonStdIOCommand {
     
     func validate() throws {
       try validateContainerNameInBlinkRegistry(name)
+      try validatePublishPorts(ports: publish)
     }
     
     func run() throws {
       _ = try machine()
         .containers
-        .start(name: name, image: image)
+        .start(name: name, image: image, ports: publish)
         .spinner(io: io, message: "Starting container", successMessage: "Container is started.")
         .awaitOutput()
     }

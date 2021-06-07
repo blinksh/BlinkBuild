@@ -13,6 +13,12 @@ public enum Machines {
   public static let availableSizes = [defaultSize]
   
   public static let containerNamePattern = "^[a-zA-Z0-9][a-zA-Z0-9_.-]+$"
+  public static let containerPortMappingPattern
+    = "^"                                                     // start of the line
+    + "([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}:)?" // optional host bind ip
+    + "[0-9]{1,5}(:[0-9]{1,5})?"                              // host and optional container ports
+    + "(/(tcp)|(udp)|(sctp))?"                                // optional protocol
+    + "$"                                                     // end of the line
   
   public enum Error: Swift.Error, LocalizedError {
     case fetchError(Fetch.Error)
@@ -28,7 +34,6 @@ public enum Machines {
       case .cannonProcessResponse: return "Cannot process response."
       }
     }
-    
 
     public var recoverySuggestion: String? {
       switch self {
@@ -141,8 +146,21 @@ public enum Machines {
   public struct Containers {
     fileprivate let client: Client
     
-    public func start(name: String, image: String) -> JSONPromise {
-      client.run(command: "create", args: ["name": name, "image": image], timeoutInterval: 60 * 2)
+    public func start(name: String, image: String, ports: [String] = []) -> JSONPromise {
+      client.run(
+        command: "create",
+        args: [
+          "name": name,
+          "image": image,
+          // ports: {"<port>/<tcp|udp>": {}}
+          "ports": ports.reduce([String: Any](), { res, key in
+            var res = res
+            res[key] = [String: Any]()
+            return res
+          })
+        ],
+        timeoutInterval: 60 * 2
+      )
     }
     
     public func reboot(name: String) -> JSONPromise {
