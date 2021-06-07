@@ -30,19 +30,19 @@ struct ContainersCommands: NonStdIOCommand {
     var io = NonStdIO.standart
     
     @Option(
-      name: .shortAndLong,
+      name: [.customShort("p", allowingJoined: true), .long],
       help: "publish a container's port(s) to the host."
     )
     var publish: [String] = []
     
     @Option(
-      name: .shortAndLong,
+      name: [.customShort("n", allowingJoined: true), .long],
       help: "name of the container"
     )
     var name: String
     
     @Option(
-      name: .shortAndLong,
+      name: [.customShort("i", allowingJoined: true), .long],
       help: "image of container"
     )
     var image: String
