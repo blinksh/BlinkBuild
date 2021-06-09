@@ -152,7 +152,7 @@ public enum Machines {
         args: [
           "name": name,
           "image": image,
-          "ports": ports
+          "ports": ports.map { $0.contains("/") ? $0 : $0 + "/tcp" }
         ],
         timeoutInterval: 60 * 2
       )
