@@ -94,11 +94,11 @@ public struct BuildCommands: NonStdIOCommand {
     @OptionGroup var verboseOptions: VerboseOptions
     var io: NonStdIO = .standart
     
-    @Flag(
-      name: .shortAndLong,
-      help: "Skip machine stop if no containers left"
-    )
-    var skipMachineAutoStop: Bool = false
+//    @Flag(
+//      name: .shortAndLong,
+//      help: "Skip machine stop if no containers left"
+//    )
+//    var skipMachineAutoStop: Bool = false
     
     @Argument(
       help: "Name of the container"
@@ -119,31 +119,31 @@ public struct BuildCommands: NonStdIOCommand {
           successMessage: "Container is stopped",
           failureMessage: "Failed to stop container"
         )
-        .flatMap({ _ -> Promise<Void, Machines.Error> in
-          if skipMachineAutoStop {
-            return .just(())
-          }
-          return machine()
-            .containers
-            .list()
-            .flatMap { json in
-            guard
-              let containers = json["containers"] as? [[String: Any]],
-              containers.isEmpty
-            else {
-              return .just(())
-            }
- 
-            return machine()
-              .stop()
-              .spinner(
-                io: io,
-                message: "No running containers left. Stopping machine...",
-                successMessage: "Machine is stopped",
-                failureMessage: "Failed to stop machine"
-              ).map { _ in }
-          }
-        })
+//        .flatMap({ _ -> Promise<Void, Machines.Error> in
+//          if skipMachineAutoStop {
+//            return .just(())
+//          }
+//          return machine()
+//            .containers
+//            .list()
+//            .flatMap { json in
+//            guard
+//              let containers = json["containers"] as? [[String: Any]],
+//              containers.isEmpty
+//            else {
+//              return .just(())
+//            }
+//
+//            return machine()
+//              .stop()
+//              .spinner(
+//                io: io,
+//                message: "No running containers left. Stopping machine...",
+//                successMessage: "Machine is stopped",
+//                failureMessage: "Failed to stop machine"
+//              ).map { _ in }
+//          }
+//        })
         .awaitOutput()!
     }
   }

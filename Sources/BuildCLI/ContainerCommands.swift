@@ -90,16 +90,22 @@ struct ContainersCommands: NonStdIOCommand {
     @OptionGroup var verboseOptions: VerboseOptions
     var io = NonStdIO.standart
     
+    @Option(
+      name: [.customShort("i", allowingJoined: true), .long],
+      help: "new image name"
+    )
+    var image: String?
+    
     @Argument(help: "Name of the container to save")
-    var name: String
+    var containerName: String
     
     func validate() throws {
-      try validateContainerName(name)
+      try validateContainerName(containerName)
     }
     
     func run() throws {
       _ = try containers()
-        .save(name: name)
+        .save(name: containerName, image: image)
         .spinner(
           io: io,
           message: "Saving container",
@@ -107,7 +113,6 @@ struct ContainersCommands: NonStdIOCommand {
           failureMessage: "Failed to save container"
         )
         .awaitOutput()!
-      print("Container", name, "is saved")
     }
   }
   

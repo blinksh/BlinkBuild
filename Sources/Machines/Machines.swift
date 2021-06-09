@@ -9,7 +9,7 @@ public enum Machines {
   public static var defaultRegion = "fra1"
   public static var defaultSize = "s-1vcpu-2gb"
   
-  public static let availableRegions = [defaultRegion]
+  public static let availableRegions = [defaultRegion, "nyc3", "fra", "nyc"]
   public static let availableSizes = [defaultSize]
   
   public static let containerNamePattern = "^[a-zA-Z0-9][a-zA-Z0-9_.-]+$"
@@ -152,12 +152,7 @@ public enum Machines {
         args: [
           "name": name,
           "image": image,
-          // ports: {"<port>/<tcp|udp>": {}}
-          "ports": ports.reduce([String: Any](), { res, key in
-            var res = res
-            res[key] = [String: Any]()
-            return res
-          })
+          "ports": ports
         ],
         timeoutInterval: 60 * 2
       )
@@ -175,8 +170,8 @@ public enum Machines {
       client.run(command: "remove", args: ["name": name])
     }
     
-    public func save(name: String) -> JSONPromise {
-      client.run(command: "save", args: ["name": name], timeoutInterval: 60 * 4)
+    public func save(name: String, image: String? = nil) -> JSONPromise {
+      client.run(command: "save", args: ["name": name, "image": image ?? NSNull()], timeoutInterval: 60 * 4)
     }
     
     public func list() -> JSONPromise {
