@@ -25,6 +25,7 @@ public struct BuildCommands: NonStdIOCommand {
       SSHKeysCommands.self,
       ContainersCommands.self,
       DeviceCommands.self,
+      ImageCommands.self,
       Up.self,
       Down.self,
       PS.self,
