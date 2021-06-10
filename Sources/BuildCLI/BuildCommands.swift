@@ -25,7 +25,7 @@ public struct BuildCommands: NonStdIOCommand {
       SSHKeysCommands.self,
       ContainersCommands.self,
       DeviceCommands.self,
-      ImageCommands.self,
+      customImageCommand ?? ImageCommands.self,
       Up.self,
       Down.self,
       PS.self,
@@ -38,7 +38,8 @@ public struct BuildCommands: NonStdIOCommand {
   public static var customSSHCommand: ParsableCommand.Type? = nil
   public static var customSSHCopyCommand: ParsableCommand.Type? = nil
   public static var customMOSHCommand: ParsableCommand.Type? = nil
-  
+  public static var customImageCommand: ParsableCommand.Type? = nil
+
   
   @OptionGroup public var verboseOptions: VerboseOptions
   public var io = NonStdIO.standart
