@@ -131,7 +131,11 @@ public enum Machines {
     fileprivate let client: Client
     
     public func add(sshKey: String) -> JSONPromise {
-      client.run(command: "add-ssh-key", args: ["ssh_key": sshKey])
+      var keyParts = sshKey.split(separator: " ").map(String.init)
+      if (keyParts.count == 2) {
+        keyParts += ["no-comment"]
+      }
+      return client.run(command: "add-ssh-key", args: ["ssh_key": keyParts.joined(separator: " ")])
     }
     
     public func list() -> Promise<String, Error> {

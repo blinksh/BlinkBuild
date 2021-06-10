@@ -290,7 +290,7 @@ public struct BuildCommands: NonStdIOCommand {
         
       }
       
-      let _ = machine().sshKeys.add(sshKey: key).awaitResult()
+      let _ = try machine().sshKeys.add(sshKey: key).awaitOutput()
       print("Key is added.")
     }
   }
