@@ -284,7 +284,7 @@ public struct BuildCommands: NonStdIOCommand {
       
       guard
         let data = try? Data(contentsOf: URL(fileURLWithPath: path)),
-        let key = String(data: data, encoding: .utf8)
+        let key = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
       else {
         throw ValidationError("Can't read pub key at path: \(path)")
         
