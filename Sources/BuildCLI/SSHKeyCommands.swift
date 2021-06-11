@@ -3,7 +3,7 @@ import NonStdIO
 
 struct SSHKeysCommands: NonStdIOCommand {
   static var configuration = CommandConfiguration(
-    commandName: "ssh-keys",
+    commandName: "ssh-key",
     abstract: "Display commands for managing ssh keys on dev machine",
     subcommands: [
       Add.self,

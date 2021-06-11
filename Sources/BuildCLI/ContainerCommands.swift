@@ -7,7 +7,7 @@ import NonStdIO
 
 struct ContainersCommands: NonStdIOCommand {
   static var configuration = CommandConfiguration(
-    commandName: "containers",
+    commandName: "container",
     abstract: "Display commands working with containers",
     subcommands: [
       Start.self,
