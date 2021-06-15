@@ -124,8 +124,14 @@ struct ContainersCommands: NonStdIOCommand {
     @OptionGroup var verboseOptions: VerboseOptions
     var io = NonStdIO.standart
     
+    @Flag(
+      name: .shortAndLong,
+      help: "Show all containers (default shows just running)"
+    )
+    var all: Bool = false
+    
     func run() throws {
-      let res = try containers().list().awaitOutput()!
+      let res = try containers().list(all: all).awaitOutput()!
       print(try JSONSerialization.prettyJSON(json: res["containers"]))
     }
   }

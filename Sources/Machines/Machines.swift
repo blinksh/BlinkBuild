@@ -178,8 +178,8 @@ public enum Machines {
       client.run(command: "save", args: ["name": name, "image": image ?? NSNull()], timeoutInterval: 60 * 4)
     }
     
-    public func list() -> JSONPromise {
-      client.run(command: "list")
+    public func list(all: Bool) -> JSONPromise {
+      client.run(command: "list", args: ["all": all])
     }
     
     public func token() -> JSONPromise {
