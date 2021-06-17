@@ -4,7 +4,6 @@ import Foundation
 import Machines
 import NonStdIO
 
-
 public struct ImageCommands: NonStdIOCommand {
   public init() {}
   
@@ -34,7 +33,7 @@ public struct ImageCommands: NonStdIOCommand {
       name: .shortAndLong,
       help: "Name and optionally a tag in the 'name:tag' format"
     )
-    var tag: String = ""
+    var tag: String
     
     @Argument(
       help: "git url"
@@ -51,9 +50,10 @@ public struct ImageCommands: NonStdIOCommand {
     func run() throws {
       let ip = try machine().ip().awaitOutput()!
       let user = BuildCLIConfig.shared.sshUser
-      let args = ["", "-c", "ssh -t -A \(verboseOptions.verbose ? "-v" : "") \(user)@\(ip) build-ctl \([tag, gitURL].filter { $0.isEmpty }.joined(separator: " "))"]
+      let url = GitURL.from(url: URL(string: gitURL)!)
+      let args = ["", "-c", "ssh -t -A\(verboseOptions.verbose ? " -v" : "") \(user)@\(ip) build-ctl \([tag, url.absoluteString].filter { !$0.isEmpty }.joined(separator: " "))"]
       
-      printDebug("Executing command \"/bin/sh" + args.joined(separator: " ") + "\"")
+      print("Executing command \"/bin/sh" + args.joined(separator: " ") + "\"")
       
       let cargs = args.map { strdup($0) } + [nil]
       
@@ -82,7 +82,7 @@ public struct ImageCommands: NonStdIOCommand {
     
     func run() throws {
       var ref: String? = nil
-      if let reference = reference {  
+      if let reference = reference {
         ref = reference.contains("*") ? reference : reference + "*"
       }
       let res = try images().list(all: all, reference: ref).awaitOutput()!
