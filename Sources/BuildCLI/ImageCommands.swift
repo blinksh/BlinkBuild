@@ -11,7 +11,7 @@ public struct ImageCommands: NonStdIOCommand {
   public static var configuration = CommandConfiguration(
     commandName: "image",
     abstract: "Commands working with containers. Default is build",
-    subcommands: [customImageBuildCommand ?? Build.self, LS.self],
+    subcommands: [customImageBuildCommand ?? Build.self, List.self],
     defaultSubcommand: customImageBuildCommand ?? Build.self
   )
   
@@ -24,7 +24,7 @@ public struct ImageCommands: NonStdIOCommand {
     static var configuration = CommandConfiguration(
       commandName: "build",
       abstract: "Build images",
-      subcommands: [LS.self]
+      subcommands: [List.self]
     )
     
     @OptionGroup var verboseOptions: VerboseOptions
@@ -63,7 +63,7 @@ public struct ImageCommands: NonStdIOCommand {
     }
   }
   
-  struct LS: NonStdIOCommand {
+  struct List: NonStdIOCommand {
     static var configuration = CommandConfiguration(
       abstract: "List images"
     )
@@ -71,8 +71,22 @@ public struct ImageCommands: NonStdIOCommand {
     @OptionGroup var verboseOptions: VerboseOptions
     var io = NonStdIO.standart
     
+    @Flag(
+      name: .shortAndLong,
+      help: "Show all images (default hides intermediate images)"
+    )
+    var all: Bool = false
+    
+    @Argument(help: "repository[:tag]")
+    var reference: String?
+    
     func run() throws {
-      print("Not implemented yet")
+      var ref: String? = nil
+      if let reference = reference {  
+        ref = reference.contains("*") ? reference : reference + "*"
+      }
+      let res = try images().list(all: all, reference: ref).awaitOutput()!
+      print(try JSONSerialization.prettyJSON(json: res["images"]))
     }
   }
 }

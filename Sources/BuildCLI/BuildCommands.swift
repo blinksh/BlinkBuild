@@ -13,6 +13,11 @@ func containers() -> Machines.Containers {
   machine().containers
 }
 
+func images() -> Machines.Images {
+  machine().images
+}
+
+
 public struct BuildCommands: NonStdIOCommand {
   public init() {}
   

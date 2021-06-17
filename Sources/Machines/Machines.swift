@@ -122,6 +122,10 @@ public enum Machines {
       Containers(client: client.subRoute(path: "container"))
     }
     
+    public var images: Images {
+      Images(client: client.subRoute(path: "image"))
+    }
+    
     public var sshKeys: SSHKeys {
       SSHKeys(client: client)
     }
@@ -144,6 +148,14 @@ public enum Machines {
     
     public func removeAt(index: UInt) -> JSONPromise {
       client.run(command: "remove-ssh-key", args: ["key_index": index])
+    }
+  }
+  
+  public struct Images {
+    fileprivate let client: Client
+    
+    public func list(all: Bool, reference: String?) -> JSONPromise {
+      client.run(command: "list", args: reference == nil ? ["all": all] : ["all": all, "reference": reference!])
     }
   }
   
