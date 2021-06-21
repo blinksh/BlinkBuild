@@ -7,9 +7,9 @@
 
 import Foundation
 
-enum GitURL {
+public enum GitURL {
   
-  static func from(url: URL) -> URL {
+  public static func from(url: URL) -> URL {
     fromGitlab(url: fromGithub(url: url))
   }
   
