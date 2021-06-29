@@ -12,10 +12,10 @@ import Foundation
 import ArgumentParser
 
 public struct VerboseOptions: ParsableArguments {
-  @Flag(name: .short)
+  @Flag(name: .long)
   public var verbose: Bool = false
   
-  @Flag(name: .short)
+  @Flag(name: .long)
   public var quiet: Bool = false
   
   public init() { }

@@ -27,7 +27,7 @@ struct SSHKeysCommands: NonStdIOCommand {
     var sshKey: String
     
     func run() throws {
-      _ = try machine()
+      _ = try machine(io: io)
         .sshKeys
         .add(sshKey: sshKey)
         .spinner(
@@ -55,7 +55,7 @@ struct SSHKeysCommands: NonStdIOCommand {
     var number: UInt
     
     func run() throws {
-      _ = try machine()
+      _ = try machine(io: io)
         .sshKeys
         .removeAt(index: number)
         .spinner(
@@ -77,7 +77,7 @@ struct SSHKeysCommands: NonStdIOCommand {
     var io = NonStdIO.standart
     
     func run() throws {
-      let res = try machine()
+      let res = try machine(io: io)
         .sshKeys
         .list()
         .spinner(

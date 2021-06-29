@@ -30,32 +30,65 @@ struct ContainersCommands: NonStdIOCommand {
     var io = NonStdIO.standart
     
     @Option(
+      name: [.customShort("e", allowingJoined: true), .long],
+      help: "Set environment variables"
+    )
+    var env: [String] = []
+    
+    @Option(
+      name: [.customShort("v", allowingJoined: true), .long],
+      help: .init("Bind mount a volume", valueName: "source_path:target_path")
+    )
+    var volume: String?
+    
+    @Option(
+      name: [.customShort("u", allowingJoined: true), .long],
+      help: "Username"
+    )
+    var user: String?
+    
+    @Option(
       name: [.customShort("p", allowingJoined: true), .long],
-      help: "publish a container's port(s) to the host."
+      help: "Publish a container's port(s) to the host."
     )
     var publish: [String] = []
     
+    @Flag(
+      name: [.customShort("P", allowingJoined: true), .long],
+      help: "Publish all exposed ports to random ports."
+    )
+    var publishAll: Bool = false
+    
     @Option(
       name: [.customShort("n", allowingJoined: true), .long],
-      help: "name of the container"
+      help: "Name of the container"
     )
     var name: String
     
     @Option(
       name: [.customShort("i", allowingJoined: true), .long],
-      help: "image of container"
+      help: "Image of container"
     )
     var image: String
     
     func validate() throws {
       try validateContainerNameInBlinkRegistry(name)
       try validatePublishPorts(ports: publish)
+      try validateVolumeMapping(volume: volume)
     }
     
     func run() throws {
-      _ = try machine()
+      _ = try machine(io: io)
         .containers
-        .start(name: name, image: image, ports: publish)
+        .start(
+          name: name,
+          image: image,
+          ports: publish,
+          publishAllPorts: publishAll,
+          user: user,
+          env: env,
+          volume: volume
+        )
         .spinner(io: io, message: "Starting container", successMessage: "Container is started.")
         .awaitOutput()
     }
@@ -77,7 +110,7 @@ struct ContainersCommands: NonStdIOCommand {
     }
     
     func run() throws {
-      _ = try machine().containers.stop(name: name).awaitOutput()!
+      _ = try machine(io: io).containers.stop(name: name).awaitOutput()!
       print("Container is stopped")
     }
   }
@@ -104,7 +137,7 @@ struct ContainersCommands: NonStdIOCommand {
     }
     
     func run() throws {
-      _ = try containers()
+      _ = try containers(io: io)
         .save(name: containerName, image: image)
         .spinner(
           io: io,
@@ -131,7 +164,7 @@ struct ContainersCommands: NonStdIOCommand {
     var all: Bool = false
     
     func run() throws {
-      let res = try containers().list(all: all).awaitOutput()!
+      let res = try containers(io: io).list(all: all).awaitOutput()!
       print(try JSONSerialization.prettyJSON(json: res["containers"]))
     }
   }
@@ -152,7 +185,7 @@ struct ContainersCommands: NonStdIOCommand {
     }
     
     func run() throws {
-      _ = try machine().containers.remove(name: name).awaitOutput()!
+      _ = try machine(io: io).containers.remove(name: name).awaitOutput()!
       print("Container removed")
     }
   }

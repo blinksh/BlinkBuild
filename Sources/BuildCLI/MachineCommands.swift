@@ -61,7 +61,7 @@ struct MachineCommands: NonStdIOCommand {
     }
     
     func run() throws {
-      _ = try machine()
+      _ = try machine(io: io)
         .start(region: region, size: size)
         .spinner(
           io: io,
@@ -82,7 +82,7 @@ struct MachineCommands: NonStdIOCommand {
     var io = NonStdIO.standart
     
     func run() throws {
-      _ = try machine()
+      _ = try machine(io: io)
         .stop()
         .spinner(
           io: io,
@@ -103,7 +103,7 @@ struct MachineCommands: NonStdIOCommand {
     var io = NonStdIO.standart
     
     func run() throws {
-      print(try machine().status().awaitOutput()!)
+      print(try machine(io: io).status().awaitOutput()!)
     }
   }
   
@@ -116,7 +116,7 @@ struct MachineCommands: NonStdIOCommand {
     var io = NonStdIO.standart
     
     func run() throws {
-      print(try machine().ip().awaitOutput()!)
+      print(try machine(io: io).ip().awaitOutput()!)
     }
   }
 }
@@ -128,6 +128,31 @@ public func validateContainerName(_ name: String) throws {
           range: nil, locale: nil)
   else {
     throw ValidationError("Invalid container name: `\(name)`")
+  }
+}
+
+public func validateVolumeMapping(volume: String?) throws {
+  guard let volume = volume
+  else {
+    return
+  }
+  
+  let parts = volume.split(separator: ":").map(String.init)
+  guard parts.count == 2
+  else {
+    throw ValidationError("Invalid volume mapping: `\(volume)`")
+  }
+  
+  if parts[0].lowercased().starts(with: "$build/") {
+    if !parts[1].starts(with: "/") {
+      throw ValidationError("Invalid volume mapping: `\(volume)`. Paths should be absolute")
+    }
+    return
+  }
+  
+  guard parts.allSatisfy( { $0.starts(with: "/")} )
+  else {
+    throw ValidationError("Invalid volume mapping: `\(volume)`. Paths should be absolute")
   }
 }
 

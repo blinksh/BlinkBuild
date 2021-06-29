@@ -1,7 +1,9 @@
+import NonStdIO
 import Promise
 import Foundation
 #if canImport(FoundationNetworking)
 import FoundationNetworking
+import NonStdIO
 #endif
 
 public enum Machines {
@@ -52,6 +54,7 @@ public enum Machines {
   struct Client {
     let baseURL: String
     let auth: Fetch.Auth
+    let io: NonStdIO
     
     func run(
       command: String,
@@ -67,13 +70,33 @@ public enum Machines {
         return .fail(.deviceNotAuthenticated)
       }
       
-      return RequestResult(
+      let request = RequestResult(
         url: baseURL,
         path: command,
         body: .json(args),
         timeoutInterval: timeoutInterval
       )
-      .fetchJSON(method: .post, auth: auth, expectedStatus: expectedStatus)
+      
+      
+      
+      return request
+        .promise().tap({ r in
+          if io.verbose {
+            io.print("post")
+            io.print(" url:", r.url ?? "")
+            if let body = r.httpBody, let str = String(data: body, encoding: .utf8) {
+              io.print("body:", str)
+            }
+          }
+        }).flatMap { request in
+          Fetch.json(
+            .post,
+            request: request,
+            auth: auth,
+            session: .shared,
+            expectedStatus: expectedStatus
+          )
+        }
       .mapError { err -> Machines.Error in
         switch err {
         case Fetch.Error.unexpectedResponseStatus(let output):
@@ -87,16 +110,25 @@ public enum Machines {
         }
         return .fetchError(err)
       }
-      .map { $0.json }
+      .map { res -> JSON in
+        if io.verbose {
+          if let response = try? JSONSerialization.prettyJSON(json: res.json) {
+            io.print("response:", res.response.statusCode, response)
+          } else {
+            io.print("response:", res.response)
+          }
+        }
+        return res.json
+      }
     }
     
     func subRoute(path: String) -> Client {
-      Client(baseURL: baseURL + "/" + path, auth: auth)
+      Client(baseURL: baseURL + "/" + path, auth: auth, io: io)
     }
   }
   
-  public static func machine(baseURL: String, auth: Fetch.Auth) -> Machine {
-    Machine(client: Client(baseURL: baseURL, auth: auth))
+  public static func machine(baseURL: String, auth: Fetch.Auth, io: NonStdIO) -> Machine {
+    Machine(client: Client(baseURL: baseURL, auth: auth, io: io))
   }
 
   public struct Machine {
@@ -162,16 +194,30 @@ public enum Machines {
   public struct Containers {
     fileprivate let client: Client
     
-    public func start(name: String, image: String, ports: [String] = []) -> JSONPromise {
-      client.run(
-        command: "create",
-        args: [
-          "name": name,
-          "image": image,
-          "ports": ports.map { $0.contains("/") ? $0 : $0 + "/tcp" }
-        ],
-        timeoutInterval: 60 * 2
-      )
+    public func start(
+      name: String,
+      image: String,
+      ports: [String] = [],
+      publishAllPorts: Bool = false,
+      user: String? = nil,
+      env: [String] = [],
+      volume: String? = nil
+    ) -> JSONPromise {
+      var args: [String: Any] = [
+        "name": name,
+        "image": image,
+        "ports": ports.map { $0.contains("/") ? $0 : $0 + "/tcp" },
+        "publish_all_ports": publishAllPorts,
+        "env": __getEnvVars(env: env)
+      ]
+      if let user = user {
+        args["run_as_user"] = user
+      }
+      if let disk_mount = volume {
+        args["disk_mount"] = disk_mount.lowercased().starts(with: "$build/")  ? disk_mount : "$BUILD/" + disk_mount
+      }
+      
+      return client.run(command: "create", args: args, timeoutInterval: 60 * 2)
     }
     
     public func reboot(name: String) -> JSONPromise {
@@ -224,5 +270,34 @@ extension Promise where O == Machines.JSON, E == Machines.Error {
       default: return res.promise()
       }
     }
+  }
+}
+
+func __getEnvVars(env:[String]) -> [String] {
+  var result = [String]()
+  for e in env {
+    if e.contains("=") {
+      result.append(e)
+      continue
+    }
+    
+    if let value = getenv(e) {
+      result.append("\(e)=\(String(cString:value))")
+    }
+  }
+  
+  return result
+}
+
+
+extension JSONSerialization {
+  static func prettyJSON(json: Any?) throws -> String {
+    guard
+      let data = try? JSONSerialization.data(withJSONObject: json ?? NSNull(), options: .prettyPrinted),
+      let string = String(data: data, encoding: .utf8)
+    else {
+      throw Machines.Error.cannonProcessResponse
+    }
+    return string
   }
 }

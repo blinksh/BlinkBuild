@@ -48,7 +48,7 @@ public struct ImageCommands: NonStdIOCommand {
     }
     
     func run() throws {
-      let ip = try machine().ip().awaitOutput()!
+      let ip = try machine(io: io).ip().awaitOutput()!
       let user = BuildCLIConfig.shared.sshUser
       let url = GitURL.from(url: URL(string: gitURL)!)
       let args = ["", "-c", "ssh -t -A\(verboseOptions.verbose ? " -v" : "") \(user)@\(ip) build-ctl \([tag, url.absoluteString].filter { !$0.isEmpty }.joined(separator: " "))"]
@@ -85,7 +85,7 @@ public struct ImageCommands: NonStdIOCommand {
       if let reference = reference {
         ref = reference.contains("*") ? reference : reference + "*"
       }
-      let res = try images().list(all: all, reference: ref).awaitOutput()!
+      let res = try images(io: io).list(all: all, reference: ref).awaitOutput()!
       print(try JSONSerialization.prettyJSON(json: res["images"]))
     }
   }

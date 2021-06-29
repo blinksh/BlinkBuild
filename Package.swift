@@ -12,7 +12,7 @@ let package = Package(
     .executable(name: "build", targets: ["Build"])
   ],
   dependencies: [
-//    .package(path: "../Spinner"),
+//    .package(path: "../Promise"),
     .package(url: "https://github.com/yury/Promise", from: "3.0.0"),
     .package(url: "https://github.com/yury/Spinner", from: "1.3.6"),
     .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.4.0"))
@@ -27,7 +27,7 @@ let package = Package(
       dependencies: ["Promise"]),
     .testTarget(
       name: "MachinesTests",
-      dependencies: ["Machines"]),
+      dependencies: ["Machines", "NonStdIO"]),
     .testTarget(
       name: "BuildCLITests",
       dependencies: ["BuildCLI"]),

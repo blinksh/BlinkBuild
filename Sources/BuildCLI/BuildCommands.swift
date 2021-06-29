@@ -5,18 +5,17 @@ import Foundation
 import Promise
 
 
-func machine() -> Machines.Machine {
-  BuildCLIConfig.shared.machine()
+func machine(io: NonStdIO) -> Machines.Machine {
+  BuildCLIConfig.shared.machine(io: io)
 }
 
-func containers() -> Machines.Containers {
-  machine().containers
+func containers(io: NonStdIO) -> Machines.Containers {
+  machine(io: io).containers
 }
 
-func images() -> Machines.Images {
-  machine().images
+func images(io: NonStdIO) -> Machines.Images {
+  machine(io: io).images
 }
-
 
 public struct BuildCommands: NonStdIOCommand {
   public init() {}
@@ -57,10 +56,34 @@ public struct BuildCommands: NonStdIOCommand {
     var io: NonStdIO = .standart
     
     @Option(
+      name: [.customShort("e", allowingJoined: true), .long],
+      help: "Set environment variables"
+    )
+    var env: [String] = []
+    
+    @Option(
+      name: [.customShort("v", allowingJoined: true), .long],
+      help: .init("Bind mount a volume", valueName: "source_path:target_path")
+    )
+    var volume: String?
+    
+    @Option(
+      name: [.customShort("u", allowingJoined: true), .long],
+      help: "Username"
+    )
+    var user: String?
+    
+    @Option(
       name: [.customShort("p", allowingJoined: true), .long],
-      help: "publish a container's port(s) to the host."
+      help: "Publish a container's port(s) to the host."
     )
     var publish: [String] = []
+    
+    @Flag(
+      name: [.customShort("P", allowingJoined: true), .long],
+      help: "Publish all exposed ports to random ports."
+    )
+    var publishAll: Bool = false
     
     @Option(
       name: [.customShort("i", allowingJoined: true), .long],
@@ -74,16 +97,25 @@ public struct BuildCommands: NonStdIOCommand {
     var containerName: String
     
     func validate() throws {
+      try validateVolumeMapping(volume: volume)
       try validateContainerNameInBlinkRegistry(containerName)
       try validatePublishPorts(ports: publish)
     }
     
     func run() throws {
-      _ = try machine().containers
-        .start(name: containerName, image: image ?? containerName, ports: publish)
+      _ = try machine(io: io).containers
+        .start(
+          name: containerName,
+          image: image ?? containerName,
+          ports: publish,
+          publishAllPorts: publishAll,
+          user: user,
+          env: env,
+          volume: volume
+        )
         .spinner(io: io, message: "Creating container", successMessage: "Container is created.")
         .onMachineNotStarted {
-          machine()
+          machine(io: io)
             .start()
             .map { _ in return true }
             .delay(.seconds(3)) // wait a little bit to start
@@ -116,7 +148,7 @@ public struct BuildCommands: NonStdIOCommand {
     }
     
     func run() throws {
-      _ = try machine()
+      _ = try machine(io: io)
         .containers
         .stop(name: containerName)
         .spinner(
@@ -170,7 +202,7 @@ public struct BuildCommands: NonStdIOCommand {
     var all: Bool = false
     
     func run() throws {
-      let res = try containers()
+      let res = try containers(io: io)
         .list(all: all)
         .awaitOutput()!
       
@@ -222,9 +254,10 @@ public struct BuildCommands: NonStdIOCommand {
     }
     
     func run() throws {
-      let ip = try machine().ip().awaitOutput()!
+      let ip = try machine(io: io).ip().awaitOutput()!
       let user = BuildCLIConfig.shared.sshUser
-      let args = ["", "-c", "ssh -t \(agent ? "-A" : "") \(verboseOptions.verbose ? "-v" : "") \(user)@\(ip) \(containerName) \(command.joined(separator: " "))"]
+      let port = BuildCLIConfig.shared.sshPort
+      let args = ["", "-c", "ssh -p \(port) -t \(agent ? "-A" : "") \(verboseOptions.verbose ? "-v" : "") \(user)@\(ip) \(containerName) \(command.joined(separator: " "))"]
       
       printDebug("Executing command \"/bin/sh" + args.joined(separator: " ") + "\"")
       
@@ -254,9 +287,10 @@ public struct BuildCommands: NonStdIOCommand {
     }
     
     func run() throws {
-      let ip = try machine().ip().awaitOutput()!
+      let ip = try machine(io: io).ip().awaitOutput()!
       let user = BuildCLIConfig.shared.sshUser
-      let args = ["", "-c", "mosh \(user)@\(ip) \(name)"]
+      let port = BuildCLIConfig.shared.sshPort
+      let args = ["", "-c", "mosh --ssh=\"ssh -p \(port)\" \(user)@\(ip) \(name)"]
       let cargs = args.map { strdup($0) } + [nil]
       
       execv("/bin/sh", cargs)
@@ -300,7 +334,7 @@ public struct BuildCommands: NonStdIOCommand {
         
       }
       
-      let _ = try machine().sshKeys.add(sshKey: key).awaitOutput()
+      let _ = try machine(io: io).sshKeys.add(sshKey: key).awaitOutput()
       print("Key is added.")
     }
   }

@@ -8,7 +8,8 @@ final class MachinesTests: XCTestCase {
           let output = try Machines
             .machine(
               baseURL: "http://yandex.ru",
-              auth: .none
+              auth: .none,
+              io: .standart
             )
             .containers.start(name: "test", image: "node")
             .awaitOutput()
