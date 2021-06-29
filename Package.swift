@@ -24,7 +24,7 @@ let package = Package(
     ),
     .target(
       name: "Machines",
-      dependencies: ["Promise"]),
+      dependencies: ["Promise", "NonStdIO"]),
     .testTarget(
       name: "MachinesTests",
       dependencies: ["Machines", "NonStdIO"]),
