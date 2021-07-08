@@ -10,8 +10,8 @@ import Machines
 import NonStdIO
 
 public class BuildCLIConfig {
-//  public static var shared: BuildCLIConfig = .init()
-  public static var shared: BuildCLIConfig = .staging()
+  public static var shared: BuildCLIConfig = .init()
+//  public static var shared: BuildCLIConfig = .staging()
   
   public static func staging() -> BuildCLIConfig {
     let cfg = BuildCLIConfig.init()

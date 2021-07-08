@@ -291,6 +291,7 @@ public struct BuildCommands: NonStdIOCommand {
       let user = BuildCLIConfig.shared.sshUser
       let port = BuildCLIConfig.shared.sshPort
       let args = ["", "-c", "mosh --ssh=\"ssh -p \(port)\" \(user)@\(ip) \(name)"]
+      print(args)
       let cargs = args.map { strdup($0) } + [nil]
       
       execv("/bin/sh", cargs)

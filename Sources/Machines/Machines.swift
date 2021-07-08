@@ -11,7 +11,7 @@ public enum Machines {
   public static var defaultRegion = "fra1"
   public static var defaultSize = "s-1vcpu-2gb"
   
-  public static let availableRegions = [defaultRegion, "nyc3", "fra", "nyc"]
+  public static let availableRegions = [defaultRegion, "nyc3", "sfo3"]
   public static let availableSizes = [defaultSize]
   
   public static let containerNamePattern = "^[a-zA-Z0-9][a-zA-Z0-9_.-]+$"
