@@ -77,8 +77,6 @@ public enum Machines {
         timeoutInterval: timeoutInterval
       )
       
-      
-      
       return request
         .promise().tap({ r in
           if io.verbose {
@@ -201,7 +199,7 @@ public enum Machines {
       publishAllPorts: Bool = false,
       user: String? = nil,
       env: [String] = [],
-      volume: String? = nil
+      volume: [String] = []
     ) -> JSONPromise {
       var args: [String: Any] = [
         "name": name,
@@ -213,11 +211,11 @@ public enum Machines {
       if let user = user {
         args["run_as_user"] = user
       }
-      if let disk_mount = volume {
-        args["disk_mount"] = disk_mount.lowercased().starts(with: "$build/")  ? disk_mount : "$BUILD/" + disk_mount
+      args["disk_mount"] = volume.map {
+        $0.lowercased().hasPrefix("$build/") ? $0 : "$BUILD/" + $0
       }
       
-      return client.run(command: "create", args: args, timeoutInterval: 60 * 2)
+      return client.run(command: "create", args: args, timeoutInterval: 60 * 3)
     }
     
     public func reboot(name: String) -> JSONPromise {

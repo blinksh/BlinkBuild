@@ -39,7 +39,7 @@ struct ContainersCommands: NonStdIOCommand {
       name: [.customShort("v", allowingJoined: true), .long],
       help: .init("Bind mount a volume", valueName: "source_path:target_path")
     )
-    var volume: String?
+    var volume: [String] = []
     
     @Option(
       name: [.customShort("u", allowingJoined: true), .long],
@@ -74,7 +74,9 @@ struct ContainersCommands: NonStdIOCommand {
     func validate() throws {
       try validateContainerNameInBlinkRegistry(name)
       try validatePublishPorts(ports: publish)
-      try validateVolumeMapping(volume: volume)
+      for v in volume {
+        try validateVolumeMapping(volume: v)
+      }
     }
     
     func run() throws {

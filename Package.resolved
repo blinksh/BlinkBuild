@@ -2,7 +2,7 @@
   "object": {
     "pins": [
       {
-        "package": "Signals",
+        "package": "BlueSignals",
         "repositoryURL": "https://github.com/IBM-Swift/BlueSignals.git",
         "state": {
           "branch": null,
