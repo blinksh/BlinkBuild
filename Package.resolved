@@ -2,15 +2,6 @@
   "object": {
     "pins": [
       {
-        "package": "BlueSignals",
-        "repositoryURL": "https://github.com/IBM-Swift/BlueSignals.git",
-        "state": {
-          "branch": null,
-          "revision": "1f6c49e186c8a4eeef87ba14f2f97b8646559d13",
-          "version": "1.0.200"
-        }
-      },
-      {
         "package": "Nanoseconds",
         "repositoryURL": "https://github.com/dominicegginton/Nanoseconds",
         "state": {
@@ -42,8 +33,8 @@
         "repositoryURL": "https://github.com/yury/Spinner",
         "state": {
           "branch": null,
-          "revision": "f53a7fde0f3155b7fc49b1a2a672600b0bfd3820",
-          "version": "1.3.6"
+          "revision": "8ad7b4fd5c6810ec0db55b01c5d4f5c5b6ebdd96",
+          "version": "1.3.7"
         }
       },
       {
