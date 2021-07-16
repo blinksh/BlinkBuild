@@ -96,7 +96,7 @@ struct MachineCommands: NonStdIOCommand {
   
   struct Status: NonStdIOCommand {
     static var configuration = CommandConfiguration(
-      abstract: "Blink machine management"
+      abstract: "Build machine status"
     )
     
     @OptionGroup var verboseOptions: VerboseOptions

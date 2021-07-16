@@ -24,15 +24,16 @@ public struct BuildCommands: NonStdIOCommand {
     commandName: "build",
     abstract: "build is a command line interface for your dev environments",
     subcommands: [
+      Up.self,
+      Down.self,
+      Status.self,
+      PS.self,
       MachineCommands.self,
       BalanceCommands.self,
       SSHKeysCommands.self,
       ContainersCommands.self,
       DeviceCommands.self,
       ImageCommands.self,
-      Up.self,
-      Down.self,
-      PS.self,
       customSSHCommand ?? SSH.self,
       customMOSHCommand ?? MOSH.self,
       customSSHCopyCommand ?? SSHCopyID.self
@@ -143,48 +144,67 @@ public struct BuildCommands: NonStdIOCommand {
     @Argument(
       help: "Name of the container"
     )
-    var containerName: String
+    var containerName: String?
     
     func validate() throws {
-      try validateContainerName(containerName)
+      if let containerName = containerName {
+        try validateContainerName(containerName)
+      }
     }
     
     func run() throws {
+      if let containerName = containerName {
+        _ = try machine(io: io)
+          .containers
+          .stop(name: containerName)
+          .spinner(
+            io: io,
+            message: "Stopping container `\(containerName)`",
+            successMessage: "Container is stopped",
+            failureMessage: "Failed to stop container"
+          )
+          .awaitOutput()!
+    } else {
       _ = try machine(io: io)
         .containers
-        .stop(name: containerName)
-        .spinner(
-          io: io,
-          message: "Stopping container `\(containerName)`",
-          successMessage: "Container is stopped",
-          failureMessage: "Failed to stop container"
-        )
-//        .flatMap({ _ -> Promise<Void, Machines.Error> in
-//          if skipMachineAutoStop {
-//            return .just(())
-//          }
-//          return machine()
-//            .containers
-//            .list()
-//            .flatMap { json in
-//            guard
-//              let containers = json["containers"] as? [[String: Any]],
-//              containers.isEmpty
-//            else {
-//              return .just(())
-//            }
-//
-//            return machine()
-//              .stop()
-//              .spinner(
-//                io: io,
-//                message: "No running containers left. Stopping machine...",
-//                successMessage: "Machine is stopped",
-//                failureMessage: "Failed to stop machine"
-//              ).map { _ in }
-//          }
-//        })
+        .list(all: false)
+        .flatMap { json -> Promise<Void, Machines.Error> in
+          if let containers = json["containers"] as? [[String: Any]],
+             containers.count > 0 {
+            io.print(containers.count, "running", containers.count == 1 ? "container" : "containers")
+            io.print("Stop machine anyway? y/N")
+            guard
+              let anwser = io.in_.readLine()?.lowercased()
+                .trimmingCharacters(in: .whitespacesAndNewlines),
+              ["y", "yes"].contains(anwser)
+            else {
+              return .just(())
+            }
+          }
+          return machine(io: io)
+            .stop()
+            .spinner(
+              io: io,
+              message: "Stopping machine...",
+              successMessage: "Machine is stopped",
+              failureMessage: "Failed to stop machine"
+            ).map { _ in }
+        }
         .awaitOutput()!
+      }
+    }
+  }
+  
+  struct Status: NonStdIOCommand {
+    static var configuration = CommandConfiguration(
+      abstract: "Status of build machine"
+    )
+    
+    @OptionGroup var verboseOptions: VerboseOptions
+    var io: NonStdIO = .standart
+    
+    func run() throws {
+      print(try machine(io: io).status().awaitOutput()!)
     }
   }
   

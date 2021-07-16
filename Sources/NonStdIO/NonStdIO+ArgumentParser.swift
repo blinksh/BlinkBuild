@@ -33,6 +33,7 @@ public extension ParsableCommand where Self: WithNonStdIO {
       var command = try parseAsRoot(args)
       
       if let cmd = command as? WithNonStdIO {
+        cmd.io.in_ = io.in_
         cmd.io.err = io.err
         cmd.io.out = io.out
       }

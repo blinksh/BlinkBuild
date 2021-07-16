@@ -7,6 +7,54 @@
 
 import Foundation
 
+public struct InputStream {
+  let fd: Int32
+  let file: UnsafeMutablePointer<FILE>
+  
+  public init(file: UnsafeMutablePointer<FILE>) {
+    self.file = file
+    self.fd = fileno(file)
+  }
+  
+  #if os(Linux)
+  
+  public func readLine() -> String? {
+    var char: UInt8 = 0
+    let newLineChar: UInt8 = 0x0a
+    var data = Data()
+    while GLibc.read(fd, &char, 1) == 1 {
+      if char == newLineChar {
+        break
+      }
+      data.append(char)
+    }
+    
+    return String(data: data, encoding: .utf8)
+  }
+  
+  static var stdin:  InputStream  { .init(file: GLibc.stdin) }
+  
+  #else
+  
+  public func readLine() -> String? {
+    var char: UInt8 = 0
+    let newLineChar: UInt8 = 0x0a
+    var data = Data()
+    while Darwin.read(fd, &char, 1) == 1 {
+      if char == newLineChar {
+        break
+      }
+      data.append(char)
+    }
+    
+    return String(data: data, encoding: .utf8)
+  }
+  
+  static var stdin:  InputStream  { .init(file: Darwin.stdin) }
+  
+  #endif
+}
+
 public struct OutputStream: TextOutputStream {
   let fd: Int32
   let file: UnsafeMutablePointer<FILE>
@@ -24,7 +72,7 @@ public struct OutputStream: TextOutputStream {
   public func flush() {
     Glibc.fflush(file)
   }
-  
+ 
   static var stdout: OutputStream { .init(file: Glibc.stdout) }
   static var stderr: OutputStream { .init(file: Glibc.stderr) }
   
@@ -46,6 +94,7 @@ public struct OutputStream: TextOutputStream {
 
 
 public class NonStdIO: Codable {
+  public var in_: InputStream
   public var out: OutputStream
   public var err: OutputStream
   
@@ -53,11 +102,13 @@ public class NonStdIO: Codable {
   public var quiet: Bool = false
   
   public init() {
+    self.in_ = InputStream.stdin
     self.out = OutputStream.stdout
     self.err = OutputStream.stderr
   }
   
   public required init(from decoder: Decoder) throws {
+    self.in_ = InputStream.stdin
     self.out = OutputStream.stdout
     self.err = OutputStream.stderr
   }
