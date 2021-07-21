@@ -247,6 +247,18 @@ public struct BuildCommands: NonStdIOCommand {
     )
     var agent: Bool = false
     
+    @Option(
+      name: .customShort("L", allowingJoined: true),
+      help: "<localport>:<bind_address>:<remoteport> Specifies that the given port on the local (client) host is to be forwarded to the given host and port on the remote side."
+    )
+    var localPortForwards: [String] = []
+    
+    @Option(
+      name: .customShort("R", allowingJoined: true),
+      help: "port:host:hostport Specifies that the given port on the remote (server) host is to be forwarded to the given host and port on the local side."
+    )
+    var reversePortForwards: [String] = []
+    
     @Argument(
       help: "name of the container"
     )
@@ -279,7 +291,13 @@ public struct BuildCommands: NonStdIOCommand {
       let ip = try machine(io: io).ip().awaitOutput()!
       let user = BuildCLIConfig.shared.sshUser
       let port = BuildCLIConfig.shared.sshPort
-      let args = ["", "-c", "ssh -p \(port) -t \(agent ? "-A" : "") \(verboseOptions.verbose ? "-v" : "") \(user)@\(ip) \(containerName) \(command.joined(separator: " "))"]
+      let portStr = port == 22 ? "" : " -p \(port)"
+      let agentStr = agent ? " -A" : ""
+      let forwardPortsStr = localPortForwards.isEmpty   ? "" : " " + localPortForwards.map { "-L \($0)" }.joined(separator: " ")
+      let reversePortsStr = reversePortForwards.isEmpty ? "" : " " + reversePortForwards.map { "-R \($0)" }.joined(separator: " ")
+      let verboseStr = verboseOptions.verbose ? " -v" : ""
+      let commandStr = command.joined(separator: " ")
+      let args = ["", "-c", "ssh -t\(portStr)\(agentStr)\(forwardPortsStr)\(reversePortsStr)\(verboseStr) \(user)@\(ip) \(containerName) \(commandStr)"]
       
       printDebug("Executing command \"/bin/sh" + args.joined(separator: " ") + "\"")
       
