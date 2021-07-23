@@ -22,21 +22,45 @@ public struct BuildCommands: NonStdIOCommand {
   
   public static var configuration = CommandConfiguration(
     commandName: "build",
-    abstract: "build is a command line interface for your dev environments",
+    abstract: "Create, manage and connect to your Build dev environments.",
+    
+    discussion: """
+    If this is your first time running Build on this device, authenticate with:
+      `build device authenticate`
+
+    With Build you can create dev environments, as easy as doing:
+      `build up ubuntu`
+
+    Build is powered by Docker, so you can pull any image from the registry. If this is your first time connecting from that device, first install an ssh key:
+      `build ssh-copy-id -i <key_name>`
+
+    You can connect using ssh and mosh right out of the box:
+      `build ssh ubuntu`
+      `build mosh ubuntu`
+    Once done, you can save changes to your container:
+      `build save ubuntu`
+    And take it down:
+      `build down ubuntu`
+    Or power everything off:
+      `build down`
+    
+    
+    """,
+    
     subcommands: [
       Up.self,
       Down.self,
       Status.self,
       PS.self,
+      customSSHCommand ?? SSH.self,
+      customMOSHCommand ?? MOSH.self,
+      customSSHCopyCommand ?? SSHCopyID.self,
       MachineCommands.self,
       BalanceCommands.self,
       SSHKeysCommands.self,
       ContainersCommands.self,
       DeviceCommands.self,
-      ImageCommands.self,
-      customSSHCommand ?? SSH.self,
-      customMOSHCommand ?? MOSH.self,
-      customSSHCopyCommand ?? SSHCopyID.self
+      ImageCommands.self
     ]
   )
   
@@ -134,12 +158,6 @@ public struct BuildCommands: NonStdIOCommand {
     
     @OptionGroup var verboseOptions: VerboseOptions
     var io: NonStdIO = .standart
-    
-//    @Flag(
-//      name: .shortAndLong,
-//      help: "Skip machine stop if no containers left"
-//    )
-//    var skipMachineAutoStop: Bool = false
     
     @Argument(
       help: "Name of the container"
