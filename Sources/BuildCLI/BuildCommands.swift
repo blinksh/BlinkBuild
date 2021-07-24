@@ -55,6 +55,7 @@ public struct BuildCommands: NonStdIOCommand {
       customSSHCommand ?? SSH.self,
       customMOSHCommand ?? MOSH.self,
       customSSHCopyCommand ?? SSHCopyID.self,
+      IP.self,
       MachineCommands.self,
       BalanceCommands.self,
       SSHKeysCommands.self,
@@ -226,6 +227,18 @@ public struct BuildCommands: NonStdIOCommand {
     }
   }
   
+  struct IP: NonStdIOCommand {
+    static var configuration = CommandConfiguration(
+      abstract: "IP of build machine"
+    )
+    
+    @OptionGroup var verboseOptions: VerboseOptions
+    var io: NonStdIO = .standart
+    
+    func run() throws {
+      print(try machine(io: io).ip().awaitOutput()!)
+    }
+  }
   
   struct PS: NonStdIOCommand {
     static var configuration = CommandConfiguration(
