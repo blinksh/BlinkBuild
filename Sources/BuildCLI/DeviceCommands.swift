@@ -1,9 +1,10 @@
 
-
+import Foundation
 import ArgumentParser
 import Machines
 import NonStdIO
 import Promise
+import Darwin
 
 struct DeviceCommands: NonStdIOCommand {
   static var configuration = CommandConfiguration(
@@ -40,15 +41,22 @@ struct DeviceCommands: NonStdIOCommand {
       else {
         return
       }
-      
+     
       print("Please authorize device here:")
       print(verificationURIComplete)
+      if let url = URL(string: verificationURIComplete),
+        let openURL = BuildCLIConfig.shared.openURL {
+        sleep(1)
+        print("We are opening that link in the the browser for you.")
+        sleep(3)
+        openURL(url)
+      }
       
-      var tries = 6;
+      var tries = 8;
       
       try Promise
         .just(deviceCode)
-        .delay(.seconds(6))
+        .delay(.seconds(10))
         .flatMap(BuildCLIConfig.shared.auth0.activate)
         .repeatIfNeeded({ result in
           switch result.fetchError {

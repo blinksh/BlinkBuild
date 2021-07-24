@@ -32,6 +32,8 @@ public class BuildCLIConfig {
   public var sshUser: String = "blink"
   public var sshPort: Int = 2222
   
+  public var openURL: Optional<(URL) -> ()> = nil
+  
   public init(storage: TokenStorage = .file()) {
     tokenProvider = AuthTokenProvider(auth0: auth0, storage: storage)
   }
