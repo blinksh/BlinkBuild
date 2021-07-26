@@ -289,14 +289,17 @@ public struct BuildCommands: NonStdIOCommand {
     var force: Bool = false
     
     func run() throws {
-      if let cachedIP = BuildCLIConfig.shared.cachedMachineIP, !force {
+      if force {
+        BuildCLIConfig.shared.cachedMachineIP = nil
+      }
+      if let cachedIP = BuildCLIConfig.shared.cachedMachineIP {
         printDebug("Return ip from cache")
         print(cachedIP)
-        return
+      } else {
+        print(try machine(io: io).ip().tap {
+          BuildCLIConfig.shared.cachedMachineIP = $0
+        }.awaitOutput()!)
       }
-      print(try machine(io: io).ip().tap {
-        BuildCLIConfig.shared.cachedMachineIP = $0
-      }.awaitOutput()!)
     }
   }
   

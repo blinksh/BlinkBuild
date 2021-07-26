@@ -120,8 +120,23 @@ struct MachineCommands: NonStdIOCommand {
     @OptionGroup var verboseOptions: VerboseOptions
     var io = NonStdIO.standart
     
+    @Flag(
+      help: "Force ip refresh"
+    )
+    var force: Bool = false
+    
     func run() throws {
-      print(try machine(io: io).ip().awaitOutput()!)
+      if force {
+        BuildCLIConfig.shared.cachedMachineIP = nil
+      }
+      if let cachedIP = BuildCLIConfig.shared.cachedMachineIP {
+        printDebug("Return ip from cache")
+        print(cachedIP)
+      } else {
+        print(try machine(io: io).ip().tap {
+          BuildCLIConfig.shared.cachedMachineIP = $0
+        }.awaitOutput()!)
+      }
     }
   }
 }
