@@ -32,12 +32,14 @@ public class BuildCLIConfig {
   public init(storage: TokenStorage = .file()) {
     tokenProvider = AuthTokenProvider(auth0: auth0, storage: storage)
     
+    #if os(Linux) || os(macOS)
+    
     blinkBuildPubKey = {
       let identity: String = NSString(string: self.sshIdentity).expandingTildeInPath
       return try? String(contentsOfFile: identity + ".pub", encoding: .utf8)
         .trimmingCharacters(in: .whitespacesAndNewlines)
     }
-    
+
     blinkBuildKeyGenerator = {
       let idenity: String = NSString(string: self.sshIdentity).expandingTildeInPath
       let process = Process()
@@ -46,6 +48,8 @@ public class BuildCLIConfig {
       process.launch()
       process.waitUntilExit()
     }
+    
+    #endif
   }
   
   public func machine(io: NonStdIO) -> Machines.Machine {
