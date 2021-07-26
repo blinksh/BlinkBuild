@@ -249,7 +249,11 @@ public struct BuildCommands: NonStdIOCommand {
               message: "Stopping machine...",
               successMessage: "Machine is stopped",
               failureMessage: "Failed to stop machine"
-            ).map { _ in }
+            )
+            .map { _ in }
+            .tap {
+              BuildCLIConfig.shared.cachedMachineIP = nil
+            }
         }
         .awaitOutput()!
       }

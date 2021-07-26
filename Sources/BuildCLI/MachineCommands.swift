@@ -68,7 +68,9 @@ struct MachineCommands: NonStdIOCommand {
           message: "Starting machine",
           successMessage: "Machine is started",
           failureMessage: "Failed to start machine"
-        )
+        ).tap({ _ in
+          BuildCLIConfig.shared.cachedMachineIP = nil
+        })
         .awaitOutput()
     }
   }
@@ -90,6 +92,9 @@ struct MachineCommands: NonStdIOCommand {
           successMessage: "Machine is stopped.",
           failureMessage: "Failed to stop machine."
         )
+        .tap({ _ in
+          BuildCLIConfig.shared.cachedMachineIP = nil
+        })
         .awaitOutput()
     }
   }
