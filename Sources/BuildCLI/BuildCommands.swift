@@ -79,6 +79,33 @@ public struct BuildCommands: NonStdIOCommand {
   public static var customSSHCommand: ParsableCommand.Type? = nil
   public static var customSSHCopyCommand: ParsableCommand.Type? = nil
   public static var customMOSHCommand: ParsableCommand.Type? = nil
+  
+  public static func createAndAddBlinkBuildKeyIfNeeded(io: NonStdIO) -> Promise<(), Machines.Error> {
+    guard let _ = BuildCLIConfig.shared.blinkBuildPubKey()
+    else {
+      io.print("No blink-build key is found. Generating new one.")
+      BuildCLIConfig.shared.blinkBuildKeyGenerator()
+      if let pubKey = BuildCLIConfig.shared.blinkBuildPubKey() {
+        io.print("Adding blink-build key to machine.")
+        return machine(io: io).sshKeys.add(sshKey: pubKey)
+          .map { _ in }
+          .tap { io.print("Key is added.")}
+      }
+      return .just(())
+    }
+    return .just(())
+  }
+  
+  public static func unwrapSSH(ports: [String], forContainer: String) -> [String] {
+    ports.map { p in
+      let parts = p.split(separator: ":").map(String.init)
+      switch parts.count {
+      case 1: return "\(p):\(forContainer):\(p)"
+      case 2: return "\(parts[0]):\(forContainer):\(parts[1])"
+      case _: return p
+      }
+    }
+  }
 
   
   @OptionGroup public var verboseOptions: VerboseOptions
@@ -163,22 +190,6 @@ public struct BuildCommands: NonStdIOCommand {
         }
         .awaitOutput()!
     }
-  }
-  
-  public static func createAndAddBlinkBuildKeyIfNeeded(io: NonStdIO) -> Promise<(), Machines.Error> {
-    guard let _ = BuildCLIConfig.shared.blinkBuildPubKey()
-    else {
-      io.print("No blink-build key is found. Generating new one.")
-      BuildCLIConfig.shared.blinkBuildKeyGenerator()
-      if let pubKey = BuildCLIConfig.shared.blinkBuildPubKey() {
-        io.print("Adding blink-build key to machine.")
-        return machine(io: io).sshKeys.add(sshKey: pubKey)
-          .map { _ in }
-          .tap { io.print("Key is added.")}
-      }
-      return .just(())
-    }
-    return .just(())
   }
 
   struct Down: NonStdIOCommand {
@@ -319,13 +330,13 @@ public struct BuildCommands: NonStdIOCommand {
     
     @Option(
       name: .customShort("L", allowingJoined: true),
-      help: "<localport>:<bind_address>:<remoteport> Specifies that the given port on the local (client) host is to be forwarded to the given host and port on the remote side."
+      help: "localport[[:container]:containerport] Specifies that the given port on the local (client) host is to be forwarded to the given container and port on the remote side."
     )
     var localPortForwards: [String] = []
     
     @Option(
       name: .customShort("R", allowingJoined: true),
-      help: "port:host:hostport Specifies that the given port on the remote (server) host is to be forwarded to the given host and port on the local side."
+      help: "localport[[:container]:containerport] Specifies that the given port on the remote (server) container is to be forwarded to the port on the local side."
     )
     var reversePortForwards: [String] = []
     
@@ -367,8 +378,14 @@ public struct BuildCommands: NonStdIOCommand {
         _ = try BuildCommands.createAndAddBlinkBuildKeyIfNeeded(io: io).awaitOutput()
       }
       let identityStr = " -i \(NSString(string: identity).expandingTildeInPath)"
-      let forwardPortsStr = localPortForwards.isEmpty   ? "" : " " + localPortForwards.map { "-L \($0)" }.joined(separator: " ")
-      let reversePortsStr = reversePortForwards.isEmpty ? "" : " " + reversePortForwards.map { "-R \($0)" }.joined(separator: " ")
+      var ports = BuildCommands.unwrapSSH(
+        ports: localPortForwards,
+        forContainer: containerName
+      )
+      let forwardPortsStr = ports.isEmpty ? "" : " " + ports.map { "-L \($0)" }.joined(separator: " ")
+      
+      ports = BuildCommands.unwrapSSH(ports: reversePortForwards, forContainer: containerName)
+      let reversePortsStr = ports.isEmpty ? "" : " " + ports.map { "-R \($0)" }.joined(separator: " ")
       let verboseStr = verboseOptions.verbose ? " -v" : ""
       let commandStr = command.joined(separator: " ")
       let args = ["", "-c", "ssh -t\(identityStr)\(portStr)\(agentStr)\(forwardPortsStr)\(reversePortsStr)\(verboseStr) \(user)@\(ip) \(containerName) \(commandStr)"]
@@ -403,6 +420,25 @@ public struct BuildCommands: NonStdIOCommand {
     )
     var identity: String = BuildCLIConfig.shared.sshIdentity
     
+    @Argument(
+      parsing: .unconditionalRemaining,
+      help: .init(
+        "If a <command> is specified, it is executed on the container instead of a login shell",
+        valueName: "command"
+      )
+    )
+    fileprivate var cmd: [String] = []
+    
+    var command: [String] {
+      get {
+        if cmd.first == "--" {
+          return Array(cmd.dropFirst())
+        } else {
+          return cmd
+        }
+      }
+    }
+    
     func validate() throws {
       try validateContainerName(name)
     }
@@ -411,11 +447,12 @@ public struct BuildCommands: NonStdIOCommand {
       let ip = try machine(io: io).ip().awaitOutput()!
       let user = BuildCLIConfig.shared.sshUser
       let port = BuildCLIConfig.shared.sshPort
+      let commandStr = command.joined(separator: " ")
       if identity == "~/.ssh/blink-build" || identity == "blink-build" {
         _ = try BuildCommands.createAndAddBlinkBuildKeyIfNeeded(io: io).awaitOutput()
       }
       let identity: String = NSString(string: identity).expandingTildeInPath
-      let args = ["", "-c", "mosh --ssh=\"ssh -p \(port) -i \(identity)\" \(user)@\(ip) \(name)"]
+      let args = ["", "-c", "mosh --ssh=\"ssh -p \(port) -i \(identity)\" \(user)@\(ip) \(name) \(commandStr)"]
       let cargs = args.map { strdup($0) } + [nil]
       
       execv("/bin/sh", cargs)
@@ -441,9 +478,9 @@ public struct BuildCommands: NonStdIOCommand {
     var identity: String = BuildCLIConfig.shared.sshIdentity
   
     func run() throws {
-      if identity == "~/.ssh/blink-build" || identity == "blink-build" && BuildCLIConfig.shared.blinkBuildPubKey() == nil {
-        _ = try BuildCommands.createAndAddBlinkBuildKeyIfNeeded(io: io).awaitOutput()
-        return
+      if (identity == "~/.ssh/blink-build" || identity == "blink-build") && BuildCLIConfig.shared.blinkBuildPubKey() == nil {
+        io.print("No blink-build key is found. Generating new one.")
+        BuildCLIConfig.shared.blinkBuildKeyGenerator()
       }
       
       var keyPath = ""

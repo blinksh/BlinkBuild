@@ -99,7 +99,13 @@ struct DeviceCommands: NonStdIOCommand {
     var io = NonStdIO.standart
     
     func run() throws {
-      print(BuildCLIConfig.shared.tokenProvider.accessToken ?? "No token")
+      let tokenProvider = BuildCLIConfig.shared.tokenProvider
+      if let token = tokenProvider.accessToken {
+        io.printDebug("region:", tokenProvider.region() ?? "unknown")
+        print(token)
+      } else {
+        printError("No token. Use `build device authenticate` command first.")
+      }
     }
   }
 }
