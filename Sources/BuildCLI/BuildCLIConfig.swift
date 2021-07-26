@@ -11,14 +11,6 @@ import NonStdIO
 
 public class BuildCLIConfig {
   public static var shared: BuildCLIConfig = .init()
-//  public static var shared: BuildCLIConfig = .staging()
-  
-  public static func staging() -> BuildCLIConfig {
-    let cfg = BuildCLIConfig.init()
-    cfg.apiURL = "https://api-staging.blink.build"
-    cfg.sshPort = 22
-    return cfg
-  }
   
   public var apiURL = "https://api.blink.build"
   public var auth0: Auth0 = Auth0(config: .init(
@@ -31,11 +23,29 @@ public class BuildCLIConfig {
   public var tokenProvider: AuthTokenProvider
   public var sshUser: String = "blink"
   public var sshPort: Int = 2222
+  public var sshIdentity: String = "~/.ssh/blink-build"
   
-  public var openURL: Optional<(URL) -> ()> = nil
+  public var openURL =  Optional<(URL) -> ()>.none
+  public var blinkBuildPubKey:  () -> String? = { nil }
+  public var blinkBuildKeyGenerator: () -> () = { }
   
   public init(storage: TokenStorage = .file()) {
     tokenProvider = AuthTokenProvider(auth0: auth0, storage: storage)
+    
+    blinkBuildPubKey = {
+      let identity: String = NSString(string: self.sshIdentity).expandingTildeInPath
+      return try? String(contentsOfFile: identity + ".pub", encoding: .utf8)
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    
+    blinkBuildKeyGenerator = {
+      let idenity: String = NSString(string: self.sshIdentity).expandingTildeInPath
+      let process = Process()
+      process.arguments = ["-t", "ecdsa", "-b", "521" , "-f", idenity, "-N", "", "-C", "blink-build"]
+      process.launchPath = "/usr/bin/ssh-keygen"
+      process.launch()
+      process.waitUntilExit()
+    }
   }
   
   public func machine(io: NonStdIO) -> Machines.Machine {
