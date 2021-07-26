@@ -182,7 +182,8 @@ public struct BuildCommands: NonStdIOCommand {
         )
         .spinner(io: io, message: "Creating container", successMessage: "Container is created.")
         .onMachineNotStarted {
-          machine(io: io)
+          BuildCLIConfig.shared.cachedMachineIP = nil
+          return machine(io: io)
             .start()
             .map { _ in return true }
             .delay(.seconds(3)) // wait a little bit to start
@@ -278,8 +279,20 @@ public struct BuildCommands: NonStdIOCommand {
     @OptionGroup var verboseOptions: VerboseOptions
     var io: NonStdIO = .standart
     
+    @Flag(
+      help: "Force ip refresh"
+    )
+    var force: Bool = false
+    
     func run() throws {
-      print(try machine(io: io).ip().awaitOutput()!)
+      if let cachedIP = BuildCLIConfig.shared.cachedMachineIP, !force {
+        printDebug("Return ip from cache")
+        print(cachedIP)
+        return
+      }
+      print(try machine(io: io).ip().tap {
+        BuildCLIConfig.shared.cachedMachineIP = $0
+      }.awaitOutput()!)
     }
   }
   
@@ -369,7 +382,7 @@ public struct BuildCommands: NonStdIOCommand {
     }
     
     func run() throws {
-      let ip = try machine(io: io).ip().awaitOutput()!
+      let ip = try BuildCLIConfig.shared.cachedMachineIP(io: io)
       let user = BuildCLIConfig.shared.sshUser
       let port = BuildCLIConfig.shared.sshPort
       let portStr = port == 22 ? "" : " -p \(port)"
@@ -444,7 +457,7 @@ public struct BuildCommands: NonStdIOCommand {
     }
     
     func run() throws {
-      let ip = try machine(io: io).ip().awaitOutput()!
+      let ip = try BuildCLIConfig.shared.cachedMachineIP(io: io)
       let user = BuildCLIConfig.shared.sshUser
       let port = BuildCLIConfig.shared.sshPort
       let commandStr = command.joined(separator: " ")

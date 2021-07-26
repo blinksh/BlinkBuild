@@ -29,6 +29,14 @@ public class BuildCLIConfig {
   public var blinkBuildPubKey:  () -> String? = { nil }
   public var blinkBuildKeyGenerator: () -> () = { }
   
+  @TTL public var cachedMachineIP: String? = nil
+  
+  public func cachedMachineIP(io: NonStdIO) throws -> String {
+    try cachedMachineIP ?? machine(io: io).ip().tap({
+      self.cachedMachineIP = $0
+    }).awaitOutput()!
+  }
+  
   public init(storage: TokenStorage = .file()) {
     tokenProvider = AuthTokenProvider(auth0: auth0, storage: storage)
     
@@ -57,4 +65,34 @@ public class BuildCLIConfig {
   }
   
   
+}
+
+
+@propertyWrapper public struct TTL<T> {
+  private let _ttl: TimeInterval
+  private var _updateTime: Date
+  private var _val: T? = nil
+  
+  public var wrappedValue: T? {
+    get {
+      if _updateTime.timeIntervalSinceNow > _ttl {
+        return nil
+      }
+      return _val
+    }
+    set {
+      _val = newValue
+      _updateTime = Date()
+    }
+  }
+  
+  public init(ttl: TimeInterval = .init(minutes: 30), wrappedValue: T?) {
+    _ttl = ttl
+    _updateTime = Date()
+    self.wrappedValue = wrappedValue
+  }
+  
+  public mutating func flush() {
+    _val = nil
+  }
 }
