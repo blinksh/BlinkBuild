@@ -10,6 +10,7 @@ struct DeviceCommands: NonStdIOCommand {
   static var configuration = CommandConfiguration(
     commandName: "device",
     abstract: "Display commands for authentication of this device",
+    shouldDisplay: false,
     subcommands: [
       Authenticate.self,
       Deauthenticate.self,

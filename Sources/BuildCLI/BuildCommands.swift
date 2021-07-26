@@ -26,25 +26,36 @@ public struct BuildCommands: NonStdIOCommand {
     
     discussion: """
     If this is your first time running Build on this device, authenticate with:
-      `build device authenticate`
+      build device authenticate
 
     With Build you can create dev environments, as easy as doing:
-      `build up ubuntu`
-
-    Build is powered by Docker, so you can pull any image from the registry. If this is your first time connecting from that device, first install an ssh key:
-      `build ssh-copy-id -i <key_name>`
-
+      build up ubuntu
     You can connect using ssh and mosh right out of the box:
-      `build ssh ubuntu`
-      `build mosh ubuntu`
+      build ssh ubuntu
+      build mosh ubuntu
     Once done, you can save changes to your container:
-      `build save ubuntu`
+      build save ubuntu
     And take it down:
-      `build down ubuntu`
+      build down ubuntu
     Or power everything off:
-      `build down`
+      build down
     
+    Basic subcommands:
+      up                      Starts container and machine if needed
+      save                    Saves container
+      down                    Stops container
+      status                  Status of Build Machine
+      ssh                     SSH to container
+      mosh                    MOSH to container
+      ip                      IP of Build Machine
     
+    Advanced subcommands:
+      device                  Manages authentication of this device
+      machine                 Manages your Build Machine
+      ssh-key                 Manages ssh keys on your Bild Machine
+      image                   Manages docker images. Default is build
+      container               Manages docker containers
+      balance                 Manages your balance
     """,
     
     subcommands: [
@@ -75,7 +86,8 @@ public struct BuildCommands: NonStdIOCommand {
   
   struct Up: NonStdIOCommand {
     static var configuration = CommandConfiguration(
-      abstract: "Starts container and machine if needed"
+      abstract: "Starts container and machine if needed",
+      shouldDisplay: false
     )
     
     @OptionGroup var verboseOptions: VerboseOptions
@@ -156,8 +168,7 @@ public struct BuildCommands: NonStdIOCommand {
   public static func createAndAddBlinkBuildKeyIfNeeded(io: NonStdIO) -> Promise<(), Machines.Error> {
     guard let _ = BuildCLIConfig.shared.blinkBuildPubKey()
     else {
-      io.print("No blink-build key is found.")
-      io.print("Generating new one.")
+      io.print("No blink-build key is found. Generating new one.")
       BuildCLIConfig.shared.blinkBuildKeyGenerator()
       if let pubKey = BuildCLIConfig.shared.blinkBuildPubKey() {
         io.print("Adding blink-build key to machine.")
@@ -172,7 +183,8 @@ public struct BuildCommands: NonStdIOCommand {
 
   struct Down: NonStdIOCommand {
     static var configuration = CommandConfiguration(
-      abstract: "Stops container"
+      abstract: "Stops container",
+      shouldDisplay: false
     )
     
     @OptionGroup var verboseOptions: VerboseOptions
@@ -234,7 +246,8 @@ public struct BuildCommands: NonStdIOCommand {
   
   struct Status: NonStdIOCommand {
     static var configuration = CommandConfiguration(
-      abstract: "Status of build machine"
+      abstract: "Status of build machine",
+      shouldDisplay: false
     )
     
     @OptionGroup var verboseOptions: VerboseOptions
@@ -247,7 +260,8 @@ public struct BuildCommands: NonStdIOCommand {
   
   struct IP: NonStdIOCommand {
     static var configuration = CommandConfiguration(
-      abstract: "IP of build machine"
+      abstract: "IP of build machine",
+      shouldDisplay: false
     )
     
     @OptionGroup var verboseOptions: VerboseOptions
@@ -260,7 +274,8 @@ public struct BuildCommands: NonStdIOCommand {
   
   struct PS: NonStdIOCommand {
     static var configuration = CommandConfiguration(
-      abstract: "List running containers"
+      abstract: "List running containers",
+      shouldDisplay: false
     )
     
     @OptionGroup var verboseOptions: VerboseOptions
@@ -283,7 +298,8 @@ public struct BuildCommands: NonStdIOCommand {
 
   struct SSH: NonStdIOCommand {
     static var configuration = CommandConfiguration(
-      abstract: "SSH to container"
+      abstract: "SSH to container",
+      shouldDisplay: false
     )
     
     @OptionGroup var verboseOptions: VerboseOptions
@@ -369,7 +385,8 @@ public struct BuildCommands: NonStdIOCommand {
 
   struct MOSH: NonStdIOCommand {
     static var configuration = CommandConfiguration(
-      abstract: "MOSH to container"
+      abstract: "MOSH to container",
+      shouldDisplay: false
     )
     
     @OptionGroup var verboseOptions: VerboseOptions
@@ -410,7 +427,8 @@ public struct BuildCommands: NonStdIOCommand {
   struct SSHCopyID: NonStdIOCommand {
     static var configuration = CommandConfiguration(
       commandName: "ssh-copy-id",
-      abstract: "Add public key to build machine authorized_keys file"
+      abstract: "Add public key to build machine authorized_keys file",
+      shouldDisplay: false
     )
     
     @OptionGroup var verboseOptions: VerboseOptions

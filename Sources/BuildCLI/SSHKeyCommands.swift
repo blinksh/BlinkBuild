@@ -5,6 +5,7 @@ struct SSHKeysCommands: NonStdIOCommand {
   static var configuration = CommandConfiguration(
     commandName: "ssh-key",
     abstract: "Display commands for managing ssh keys on dev machine",
+    shouldDisplay: false,
     subcommands: [
       Add.self,
       Remove.self,

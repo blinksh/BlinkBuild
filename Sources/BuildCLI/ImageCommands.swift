@@ -10,6 +10,7 @@ public struct ImageCommands: NonStdIOCommand {
   public static var configuration = CommandConfiguration(
     commandName: "image",
     abstract: "Commands working with containers. Default is build",
+    shouldDisplay: false,
     subcommands: [customImageBuildCommand ?? Build.self, List.self],
     defaultSubcommand: customImageBuildCommand ?? Build.self
   )

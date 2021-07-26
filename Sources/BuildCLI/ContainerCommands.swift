@@ -9,6 +9,7 @@ struct ContainersCommands: NonStdIOCommand {
   static var configuration = CommandConfiguration(
     commandName: "container",
     abstract: "Display commands working with containers",
+    shouldDisplay: false,
     subcommands: [
       Start.self,
       Stop.self,

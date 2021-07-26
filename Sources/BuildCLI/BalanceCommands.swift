@@ -14,6 +14,7 @@ struct BalanceCommands: NonStdIOCommand {
     commandName: "balance",
     abstract: "Display commands for retrieving your account balance",
     discussion: "Note here, that you can turn on/off machine with iOS/iPadOS automation app",
+    shouldDisplay: false,
     subcommands: [
       Get.self,
     ]

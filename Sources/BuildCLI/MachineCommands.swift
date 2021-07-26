@@ -8,6 +8,7 @@ struct MachineCommands: NonStdIOCommand {
     commandName: "machine",
     abstract: "Display commands for machine management",
     discussion: "When no files are specified, it expects the source from standard input.",
+    shouldDisplay: false,
     subcommands: [
       Start.self,
       Stop.self,
