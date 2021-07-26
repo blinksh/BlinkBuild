@@ -136,8 +136,19 @@ public enum Machines {
       client.run(command: "status").stringFor(key: "status")
     }
     
-    public func start(region: String = defaultRegion, size: String = defaultSize) -> JSONPromise {
-      client.run(command: "create", args: ["region": region, "size": size], timeoutInterval: 60 * 4)
+    public func start(region: String? = nil, size: String = defaultSize) -> JSONPromise {
+      let machineRegion: String
+      if let region = region {
+         machineRegion = region
+      } else if
+         case .bearer(let provider) = client.auth,
+         let tokenProvider = provider as? AuthTokenProvider,
+         let tokenRegion = tokenProvider.region() {
+        machineRegion = tokenRegion
+      } else {
+        machineRegion = defaultRegion
+      }
+      return client.run(command: "create", args: ["region": machineRegion, "size": size], timeoutInterval: 60 * 4)
     }
     
     public func stop() -> JSONPromise {

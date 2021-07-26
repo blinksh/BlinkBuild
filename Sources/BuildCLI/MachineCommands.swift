@@ -31,10 +31,9 @@ struct MachineCommands: NonStdIOCommand {
     
     @Option(
       name: .shortAndLong,
-      help: "Region where machine is started. (fra1)"
-//      completion: .list(Machines.availableRegions)
+      help: "Region where machine is started."
     )
-    var region: String = Machines.availableRegions.first!
+    var region: String?
     
     @Option(
       name: .shortAndLong,
@@ -45,7 +44,7 @@ struct MachineCommands: NonStdIOCommand {
     
     func validate() throws {
       let regions = Machines.availableRegions
-      guard regions.contains(region)
+      guard region == nil || regions.contains(region!)
       else {
         throw ValidationError(
           "Invalid `region` value. Possible region values: " + regions.joined(separator: ", ")
