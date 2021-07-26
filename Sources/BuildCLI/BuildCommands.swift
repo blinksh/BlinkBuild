@@ -149,9 +149,6 @@ public struct BuildCommands: NonStdIOCommand {
             .delay(.seconds(3)) // wait a little bit to start
             .spinner(io: io, message: "Starting machine")
         }
-        .flatMap({ _ in
-          createAndAddBlinkBuildKeyIfNeeded(io: io)
-        })
         .awaitOutput()!
     }
   }
