@@ -22,7 +22,7 @@ public struct InputStream {
     var char: UInt8 = 0
     let newLineChar: UInt8 = 0x0a
     var data = Data()
-    while GLibc.read(fd, &char, 1) == 1 {
+    while Glibc.read(fd, &char, 1) == 1 {
       if char == newLineChar {
         break
       }
@@ -32,7 +32,7 @@ public struct InputStream {
     return String(data: data, encoding: .utf8)
   }
   
-  static var stdin:  InputStream  { .init(file: GLibc.stdin) }
+  static var stdin:  InputStream  { .init(file: Glibc.stdin) }
   
   #else
   
