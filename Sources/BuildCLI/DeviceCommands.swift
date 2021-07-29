@@ -4,7 +4,6 @@ import ArgumentParser
 import Machines
 import NonStdIO
 import Promise
-import Darwin
 
 struct DeviceCommands: NonStdIOCommand {
   static var configuration = CommandConfiguration(
