@@ -25,6 +25,7 @@ public enum Machines {
   public enum Error: Swift.Error, LocalizedError {
     case fetchError(Fetch.Error)
     case machineIsNotStarted
+    case containerIsRunning
     case deviceNotAuthenticated
     case cannonProcessResponse
     
@@ -32,6 +33,7 @@ public enum Machines {
       switch self {
       case .fetchError(let error): return error.localizedDescription
       case .machineIsNotStarted: return "Machine is not started."
+      case .containerIsRunning: return "Container is running."
       case .deviceNotAuthenticated: return "This device is not authenticated."
       case .cannonProcessResponse: return "Cannot process response."
       }
@@ -43,6 +45,7 @@ public enum Machines {
       case .machineIsNotStarted: return "Hint: Start machine first with `build machine start` command."
       case .deviceNotAuthenticated: return "Hint: Use `build device authenticate` command first."
       case .cannonProcessResponse: return ""
+      case .containerIsRunning: return ""
       }
     }
 
@@ -98,11 +101,19 @@ public enum Machines {
       .mapError { err -> Machines.Error in
         switch err {
         case Fetch.Error.unexpectedResponseStatus(let output):
+          guard
+            [404, 409].contains(output.response.statusCode),
+            let json = try? JSONSerialization.jsonObject(with: output.data, options: []) as? [String: Any],
+            let message = json["message"] as? String
+          else {
+            break
+          }
           if output.response.statusCode == 404,
-             let json = try? JSONSerialization.jsonObject(with: output.data, options: []) as? [String: Any],
-             let message = json["message"] as? String,
              message == "No machine assigned to user. Please run machine create first."  {
             return .machineIsNotStarted
+          } else if output.response.statusCode == 409,
+            message.hasPrefix("You cannot remove a running container") {
+            return .containerIsRunning
           }
         default: break
         }

@@ -188,9 +188,27 @@ struct ContainersCommands: NonStdIOCommand {
     }
     
     func run() throws {
-      _ = try machine(io: io).containers.remove(name: name).awaitOutput()!
+      do {
+        _ = try machine(io: io).containers.remove(name: name).awaitOutput()!
+      }
+      catch Machines.Error.containerIsRunning {
+        io.print("Container `\(name)` is running. Stop it first? y/N")
+        guard
+          let anwser = io.in_.readLine()?.lowercased()
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+          ["y", "yes"].contains(anwser)
+        else {
+          return
+        }
+        
+        _ = try machine(io: io).containers
+          .stop(name: name)
+          .flatMap { _ in
+            machine(io: io).containers.remove(name: name)
+          }
+          .awaitOutput()!
+      }
       print("Container removed")
     }
   }
-
 }
