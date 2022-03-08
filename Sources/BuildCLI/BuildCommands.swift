@@ -52,7 +52,7 @@ public struct BuildCommands: NonStdIOCommand {
     Advanced subcommands:
       device                  Manages authentication of this device
       machine                 Manages your Build Machine
-      ssh-key                 Manages ssh keys on your Bild Machine
+      ssh-key                 Manages ssh keys on your Build Machine
       image                   Manages docker images. Default is build
       container               Manages docker containers
       balance                 Manages your balance
